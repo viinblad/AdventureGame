@@ -7,23 +7,43 @@ public class UserInterface {
         scanner = new Scanner(System.in);
     }
 
-    // Metode til at få input fra brugeren
+    // Method to get input from the user
     public String getUserInput() {
         System.out.print("> ");
         return scanner.nextLine();
     }
 
-    // Metode til at vise beskeder til brugeren
+    // Method to show messages to the user in a styled format
     public void showMessage(String message) {
-        System.out.println(message);
+        printOverlayedTextBox(message);
     }
 
-    // Metode til at vise hjælp til spilleren
+    // Method to display room descriptions in an overlay style
+    public void displayRoomDescription(Room room) {
+        String description = "You are in " + room.getName() + "\n" + room.getDescription();
+        printOverlayedTextBox(description);
+    }
+
+    // Method to show help to the player
     public void showHelp() {
-        showMessage("Available commands:");
-        showMessage("go north, go south, go east, go west - to move between rooms.");
-        showMessage("look - to describe the current room.");
-        showMessage("exit - to quit the game.");
-        showMessage("help - to show this message.");
+        String helpMessage = "Available commands:\n" +
+                "go north, go south, go east, go west - to move between rooms.\n" +
+                "look - to describe the current room.\n" +
+                "exit - to quit the game.\n" +
+                "help - to show this message.";
+        printOverlayedTextBox(helpMessage);
+    }
+
+    // Optional: Close the scanner to prevent resource leaks
+    public void close() {
+        scanner.close();
+    }
+
+    // Helper method to print messages in an overlay text box style
+    private void printOverlayedTextBox(String message) {
+        int width = 60; // Set width for the overlay
+        System.out.println("=".repeat(width));
+        System.out.println(message);
+        System.out.println("=".repeat(width));
     }
 }
