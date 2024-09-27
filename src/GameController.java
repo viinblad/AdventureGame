@@ -10,9 +10,7 @@ public class GameController {
         this.ui = ui; // Set the user interface
         this.soundManager = new SoundManager(); // Initialize sound manager
         this.gameMap = new Map(); // Initialize the Map instance
-
-        // Call initializeGame to set the starting room
-        initializeGame();
+        initializeGame(); // Call initializeGame to set the starting room
         soundManager.startTheme("resources/sounds/theme_mix.wav"); // Start background theme music
     }
 
@@ -21,35 +19,51 @@ public class GameController {
     }
 
     public void startGame() {
-        // Display loading screen while game assets are being loaded
-        LoadingScreen loadingScreen = new LoadingScreen();
-        try {
-            loadingScreen.displayLoading(); // Display loading animation
-        } catch (InterruptedException | IOException e) {
-            System.err.println("Loading error: " + e.getMessage());
-            return; // Exit if loading fails
-        }
+        // Start a new thread for loading screen to avoid blocking the main thread
+        new Thread(() -> {
+            // Display loading screen while game assets are being loaded
+            LoadingScreen loadingScreen = new LoadingScreen();
+            try {
+                loadingScreen.displayLoading(); // Display loading animation
+            } catch (InterruptedException | IOException e) {
+                System.err.println("Loading error: " + e.getMessage());
+                return; // Exit if loading fails
+            }
 
-        // Welcome message and instructions
-        ui.showMessage("Welcome to the Adventure Game!");
-        ui.showMessage("Type 'help' to see the available commands.");
-        soundManager.playSound("start"); // Play sound for starting the game
+            // After loading, update the UI on the main thread
+            ui.showMessage("Welcome to the Adventure Game!");
+            ui.showMessage("Type 'help' to see the available commands.");
+            soundManager.playSound("start"); // Play sound for starting the game
 
-        // Display the initial room description
-        if (currentRoom != null) {
-            ui.displayRoomDescription(currentRoom);
-        } else {
-            System.err.println("Current room is not initialized.");
-        }
+            // Display the initial room description
+            if (currentRoom != null) {
+                ui.displayRoomDescription(currentRoom);
+            } else {
+                System.err.println("Current room is not initialized.");
+            }
+        }).start(); // Start the loading thread
     }
 
     public void processCommand(String command) {
         command = command.trim().toLowerCase(); // Normalize input
 
+        // Clear the output area before processing the command
+        ui.clearOutput();  // Clear previous text/output
+
         // Command processing
         switch (command) {
             case String cmd when cmd.startsWith("go "):
-                move(command.substring(3).trim()); // Extract and move in the specified direction
+                // Start loading screen in a new thread before moving
+                String finalCommand = command;
+                new Thread(() -> {
+                    LoadingScreen loadingScreen = new LoadingScreen();
+                    try {
+                        loadingScreen.displayLoading(); // Display loading animation
+                        move(finalCommand.substring(3).trim()); // Extract and move in the specified direction
+                    } catch (InterruptedException | IOException e) {
+                        System.err.println("Loading error: " + e.getMessage());
+                    }
+                }).start();
                 break;
             case "look":
                 lookAround(); // Describe the current room
@@ -91,7 +105,6 @@ public class GameController {
                     return; // Exit if locked
                 }
                 nextRoom = currentRoom.getEast(); // Get the next room if it's not locked
-                soundManager.lowerThemeVolume(); // Lower background theme music
                 break;
             case "west":
                 nextRoom = currentRoom.getWest();
@@ -110,6 +123,7 @@ public class GameController {
             ui.showMessage("You cannot go that way."); // Handle invalid movements
         }
     }
+
 
     private void lookAround() {
         // Display the current room's description

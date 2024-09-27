@@ -7,9 +7,9 @@ public class UserInterface {
     private JFrame frame;                     // Main application window
     private JTextArea textArea;               // Area for displaying game messages
     private JTextField inputField;            // Field for user input commands
-    private JButton sendButton;                // Button to send user input
-    private GameController gameController;     // Reference to the GameController
-    private JDialog loadingDialog;             // Loading dialog
+    private JButton sendButton;               // Button to send user input
+    private GameController gameController;    // Reference to the GameController
+    private JDialog loadingDialog;            // Loading dialog
     private JTextArea ansiArtArea;            // Area for displaying ANSI art
 
     public UserInterface() {
@@ -28,7 +28,7 @@ public class UserInterface {
         ansiArtArea.setEditable(false); // Make the text area non-editable
         ansiArtArea.setLineWrap(true); // Enable line wrapping
         ansiArtArea.setWrapStyleWord(true); // Wrap lines at word boundaries
-        ansiArtArea.setFont(new Font("Monospaced", Font.PLAIN, 16)); // Set a monospaced font for better readability
+        ansiArtArea.setFont(new Font("Monospaced", Font.PLAIN, 20)); // Set a monospaced font for better readability
         ansiArtArea.setBackground(Color.BLACK); // Set background color
         ansiArtArea.setForeground(Color.WHITE); // Set text color
 
@@ -36,6 +36,9 @@ public class UserInterface {
         JScrollPane ansiScrollPane = new JScrollPane(ansiArtArea);
         ansiScrollPane.setPreferredSize(new Dimension(frame.getWidth(), 1100)); // Set height for the ANSI art area
         frame.add(ansiScrollPane, BorderLayout.NORTH); // Add to the top of the frame
+
+        // Set the title screen ANSI art when the application starts
+        updateAnsiArt(ANSIArt.getTitleScreen()); // Display the title screen ANSI art centered
 
         // Create a text area for displaying messages to the player
         textArea = new JTextArea();
@@ -94,7 +97,19 @@ public class UserInterface {
 
     // Method to update ANSI art based on the current room
     public void updateAnsiArt(String ansiArt) {
-        ansiArtArea.setText(ansiArt); // Set the ANSI art text
+        String[] lines = ansiArt.split("\n"); // Split the ANSI art into individual lines
+        StringBuilder centeredArt = new StringBuilder();
+        int maxWidth = ansiArtArea.getWidth() / ansiArtArea.getFontMetrics(ansiArtArea.getFont()).charWidth('M'); // Estimate max width
+
+        for (String line : lines) {
+            int padding = (maxWidth - line.length()) / 2; // Calculate padding for centering
+            if (padding > 0) {
+                centeredArt.append(" ".repeat(Math.max(0, padding))); // Add spaces for centering
+            }
+            centeredArt.append(line).append("\n"); // Append the original line
+        }
+
+        ansiArtArea.setText(centeredArt.toString()); // Set the centered text
     }
 
     // Handle input from the user
@@ -115,10 +130,14 @@ public class UserInterface {
         }
     }
 
+    // Method to clear the output text area
+    public void clearOutput() {
+        textArea.setText(""); // Clear the text area
+    }
+
     // Method to show messages to the user in a styled format
     public void showMessage(String message) {
-        textArea.setText(""); // Clear the old messages
-        textArea.append(message + "\n"); // Append the new message to the text area
+        textArea.append(message + "\n"); // Append the message to the text area
         textArea.setCaretPosition(textArea.getDocument().getLength()); // Auto-scroll to the bottom of the text area
     }
 

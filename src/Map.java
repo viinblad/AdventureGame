@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +55,49 @@ public class Map {
 
         // Set the starting room
         startingRoom = room1;
+    }
+
+    // New method to handle room transitions
+    public Room moveToRoom(Room currentRoom, String direction) throws InterruptedException, IOException {
+        Room nextRoom = null;
+
+        switch (direction) {
+            case "north":
+                nextRoom = currentRoom.getNorth();
+                break;
+            case "south":
+                nextRoom = currentRoom.getSouth();
+                break;
+            case "east":
+                if (currentRoom.isEastLocked()) { // Check if the door is locked
+                    return null; // Return null if locked
+                }
+                nextRoom = currentRoom.getEast();
+                break;
+            case "west":
+                nextRoom = currentRoom.getWest();
+                break;
+            default:
+                return null; // Invalid direction
+        }
+
+        // If moving to a valid room
+        if (nextRoom != null) {
+            // Show loading screen if not moving to the starting room
+            if (currentRoom != startingRoom) {
+                showLoadingScreen(); // Call to loading screen display
+            }
+            return nextRoom; // Return the next room
+        } else {
+            return null; // Handle invalid movement
+        }
+    }
+
+    // Method to display the loading screen
+    private void showLoadingScreen() throws InterruptedException, IOException {
+        // Display loading animation
+        LoadingScreen loadingScreen = new LoadingScreen();
+        loadingScreen.displayLoading(); // Assuming this method already handles UI
     }
 
     // Method to display the map
