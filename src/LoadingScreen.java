@@ -1,11 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 
 public class LoadingScreen extends JFrame {
-    // Define color codes for ANSI art
     private final Color[] colors = {
             Color.RED,
             Color.GREEN,
@@ -15,52 +13,51 @@ public class LoadingScreen extends JFrame {
             Color.CYAN,
             Color.WHITE
     };
-    // Method to get a random color
-    public Color getRandomColor() {
-        Random random = new Random();
-        int index = random.nextInt(colors.length); // Generate a random index
-        return colors[index]; // Return the color at the random index
-    }
 
     private JLabel loadingLabel;
     private JTextArea textArea;
 
     public LoadingScreen() {
         // Set up the frame
-        setUndecorated(true); // Remove title bar and borders
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exit on close
-        setLocationRelativeTo(null); // Center the frame
+        setUndecorated(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(Color.BLACK); // Set background color of the frame
 
         // Set up the text area for the ANSI art
         textArea = new JTextArea();
-        textArea.setEditable(false); // Make it non-editable
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 18)); // Use a monospaced font
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 28));
         textArea.setBackground(Color.BLACK); // Background color
-        textArea.setForeground(getRandomColor()); // Text color
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
+        textArea.setForeground(Color.WHITE); // Set a default text color
+        textArea.setLineWrap(false); // Disable line wrap to maintain ANSI art formatting
+        textArea.setWrapStyleWord(false); // Ensure no word wrap occurs
+        textArea.setCaretPosition(0); // Ensure the caret is at the start
 
-        // Use a scroll pane for the text area to allow scrolling if needed
+        // Use a scroll pane for the text area
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setPreferredSize(new Dimension(1920, 1080)); // Set preferred size for the scroll pane
+        scrollPane.setPreferredSize(new Dimension(1920, 1080));
 
         // Set up the loading label
         loadingLabel = new JLabel("Loading...   ");
-        loadingLabel.setFont(new Font("Arial", Font.BOLD, 40)); // Use a larger font for loading text
+        loadingLabel.setFont(new Font("Arial", Font.BOLD, 40));
         loadingLabel.setForeground(Color.WHITE);
-        loadingLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center the loading label
+        loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         // Add components to the frame
-        add(scrollPane, BorderLayout.CENTER); // Add the text area in the center
-        add(loadingLabel, BorderLayout.SOUTH); // Add the loading label at the bottom
+        add(scrollPane, BorderLayout.CENTER);
+        add(loadingLabel, BorderLayout.SOUTH);
 
         setVisible(true); // Make the frame visible
     }
 
     public void displayLoading() throws InterruptedException, IOException {
-        String ansiArt =
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws InterruptedException {
+                String ansiArt =
                 "::::::::::::::::::::.........                              .        .     #%%                                                                             \n" +
                         "::::::::::::::::::::........                         =  . %:  .# +.  :#%%%%@=           +                                                                 \n" +
                         ":::::::::::::::::::........                          # .:#@ ..@@*%@@%*%%%%@@@#*=     *++   .                                                              \n" +
@@ -111,31 +108,52 @@ public class LoadingScreen extends JFrame {
                         ":::::::::::::..    -   *      =@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%@#@@@@@@@@@@@@@@@@@@@%@%@%@%@@@@@@#@@@@@@@@@@@@@@@@@@@@@@@@@@@%@@@@@@@@@  \n" +
                         ":::::::::::::..   -         %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#@@@@@@%@@@@@@@@@@@@@@@#@@@@@%@@@@#@@@@@@@@@@@@@@@@@@@@@@      \n";
 
-        // Set the ANSI art to the text area
-        textArea.setText(ansiArt);
-        textArea.setCaretPosition(0); // Scroll to the top
+                for (String line : ansiArt.split("\n")) {
+                    textArea.append(line + "\n");
+                    Thread.sleep(100); // Adjust delay as needed
+                }
 
-        for (int i = 0; i < 10; i++) {
-            loadingLabel.setForeground(colors[i % colors.length]); // Change loading message color
-            loadingLabel.setText("Enjoy from Hell to Heaven" + ".".repeat(i % 4)); // Update loading message
-            TimeUnit.MILLISECONDS.sleep(500); // Pause for 500 milliseconds
-        }
+                // Change colors in the loading label
+                for (Color color : colors) {
+                    loadingLabel.setForeground(color);
+                    Thread.sleep(500); // Change colors every 500ms
+                }
 
-        // Wait for user input (simulated here by a sleep)
-        Thread.sleep(1000);
-        System.out.println("Game starting...");
+                return null; // Return null as a signal of completion
+            }
 
-        // Close the loading screen
-        dispose();
-        // Here you can start your actual game logic or GUI
+            @Override
+            protected void done() {
+                try {
+                    get(); // Retrieve any exception that occurred during execution
+                } catch (InterruptedException e) {
+                    // Handle interrupted exception
+                    System.err.println("Loading was interrupted: " + e.getMessage());
+                    dispose(); // Close the loading screen
+                    return;
+                } catch (ExecutionException e) {
+                    // Handle any other exceptions that occurred
+                    throw new RuntimeException("Exception during loading: " + e.getCause().getMessage(), e.getCause());
+                }
+
+                // Once loading is done, you can close the loading screen or open the main application
+                dispose(); // Close loading screen
+                // Open your main application here
+                // new MainApplication(); // Uncomment to start the main application
+            }
+        };
+
+        worker.execute(); // Start the loading process
     }
 
     public static void main(String[] args) {
-        LoadingScreen loadingScreen = new LoadingScreen();
-        try {
-            loadingScreen.displayLoading();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+        SwingUtilities.invokeLater(() -> {
+            LoadingScreen loadingScreen = new LoadingScreen();
+            try {
+                loadingScreen.displayLoading();
+            } catch (InterruptedException | IOException e) {
+                System.err.println("Error displaying loading screen: " + e.getMessage());
+            }
+        });
     }
 }

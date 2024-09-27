@@ -2,8 +2,8 @@ public class Room {
     private String name;
     private String description;
     private Room north, south, east, west;
-    private boolean visit = false;  // Markerer om rummet er besøgt
-    private boolean lockedEast = false;  // Markerer om døren mod øst er låst
+    private boolean visited = false;  // Mark whether the room has been visited
+    private boolean lockedEast = false;  // Marks if the eastern door is locked
 
     // Constructor
     public Room(String name, String description) {
@@ -11,49 +11,59 @@ public class Room {
         this.description = description;
     }
 
-    // Getter og setter metoder for retninger med automatisk tovejskobling
+    // Getter and setter methods for directions with automatic bidirectional linking
     public Room getNorth() { return north; }
     public void setNorth(Room north) {
         this.north = north;
-        if (north.getSouth() != this) {
-            north.setSouth(this);  // Automatisk forbinde modsat
+        if (north != null && north.getSouth() != this) {
+            north.setSouth(this);
         }
     }
 
     public Room getSouth() { return south; }
     public void setSouth(Room south) {
         this.south = south;
-        if (south.getNorth() != this) {
-            south.setNorth(this);  // Automatisk forbinde modsat
+        if (south != null && south.getNorth() != this) {
+            south.setNorth(this);
         }
     }
 
-    public Room getEast() { return east; }
+    public Room getEast() { return lockedEast ? null : east; } // Prevent movement if locked
     public void setEast(Room east) {
         this.east = east;
-        if (east.getWest() != this) {
-            east.setWest(this);  // Automatisk forbinde modsat
+        if (east != null && east.getWest() != this) {
+            east.setWest(this);
         }
     }
 
     public Room getWest() { return west; }
     public void setWest(Room west) {
         this.west = west;
-        if (west.getEast() != this) {
-            west.setEast(this);  // Automatisk forbinde modsat
+        if (west != null && west.getEast() != this) {
+            west.setEast(this);
         }
     }
 
-    // Getter og setter for visit-attribut
+    // Mark the room as visited
+    public void setVisited(boolean visited) {
+        this.visited = visited;
+    }
+
     public boolean isVisited() {
-        return visit;
+        return visited;
     }
 
-    public void setVisited(boolean visit) {
-        this.visit = visit;
+    // Getter for room name
+    public String getName() {
+        return name;
     }
 
-    // Lås og oplåsning af østlige døre
+    // Getter for room description
+    public String getDescription() {
+        return description;
+    }
+
+    // Lock and unlock the eastern door
     public void lockEast() {
         this.lockedEast = true;
     }
@@ -64,18 +74,5 @@ public class Room {
 
     public boolean isEastLocked() {
         return lockedEast;
-    }
-
-    // Getter for navn og beskrivelse. Beskrivelsen ændres baseret på om rummet er besøgt
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        if (visit) {
-            return name + ": You have already been here.";  // Rummets navn og kort besked efter første besøg
-        } else {
-            return name + ": " + description;  // Fuld beskrivelse første gang
-        }
     }
 }
