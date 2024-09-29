@@ -28,17 +28,16 @@ public class LoadingScreen extends JFrame {
         // Set up the text area for the ANSI art
         textArea = new JTextArea();
         textArea.setEditable(false);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 28));
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 15));
         textArea.setBackground(Color.BLACK); // Background color
         textArea.setForeground(Color.WHITE); // Set a default text color
         textArea.setLineWrap(false); // Disable line wrap to maintain ANSI art formatting
         textArea.setWrapStyleWord(false); // Ensure no word wrap occurs
-        textArea.setCaretPosition(0); // Ensure the caret is at the start
 
         // Use a scroll pane for the text area
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setPreferredSize(new Dimension(1920, 1080));
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // Only show scroll bar when necessary
+        scrollPane.setPreferredSize(new Dimension(getWidth(), getHeight() - 100)); // Leave some space for the loading label
 
         // Set up the loading label
         loadingLabel = new JLabel("Loading...   ");
