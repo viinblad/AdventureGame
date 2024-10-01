@@ -4,188 +4,274 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class UserInterface {
-    private JFrame frame;                     // Hovedprogramvinduet
-    private JTextArea textArea;               // Område til at vise spilmeddelelser
-    private JTextField inputField;            // Felt til brugerinput
-    private JButton sendButton;               // Knap til at sende brugerinput
-    private GameController gameController;    // Reference til GameController
-    private JTextArea ansiArtArea;            // Område til at vise ANSI kunst
+    private JFrame frame;                     // Main application window
+    private JTextArea textArea;               // Area to display game messages
+    private JTextField inputField;            // Field for user input
+    private JButton sendButton;               // Button to send user input
+    private GameController gameController;    // Reference to GameController
+    private JTextArea ansiArtArea;            // Area to display ANSI art
 
     public UserInterface() {
-        initializeUI(); // Initialiser brugergrænsefladen
+        initializeUI(); // Initialize the user interface
     }
 
     private void initializeUI() {
-        // Opret hovedvinduet for applikationen
+        // Create the main application window
         frame = new JFrame("Adventure Game");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Afslut applikationen ved lukning
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Sæt vinduet til fuld skærm
-        frame.setLayout(new BorderLayout()); // Brug BorderLayout til layoutstyring
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exit the application on close
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set the window to full screen
+        frame.setLayout(new BorderLayout()); // Use BorderLayout for layout management
 
-        // Opret et panel til at centrere ANSI kunstområdet
+        // Create a panel to center the ANSI art area
         JPanel ansiPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(60, 120, 120, 120); // Padding around the component
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER; // Center the content
-        ansiPanel.setBackground(Color.BLACK); // set background color
+        ansiPanel.setBackground(Color.BLACK); // Set background color
 
-        // Opret et tekstområde til at vise ANSI kunst
+        // Create a text area to display ANSI art
         ansiArtArea = new JTextArea();
-        ansiArtArea.setEditable(false); // Gør tekstområdet ikke-redigerbart
-        ansiArtArea.setLineWrap(false); // Deaktiver linjeskift for ANSI kunst
-        ansiArtArea.setFont(new Font("Monospaced", Font.PLAIN, 20)); // Sæt en monospaced skrifttype
-        ansiArtArea.setBackground(Color.BLACK); // Sæt baggrundsfarve
-        ansiArtArea.setForeground(Color.WHITE); // Sæt tekstfarve
+        ansiArtArea.setEditable(false); // Make the text area non-editable
+        ansiArtArea.setLineWrap(false); // Disable line wrap for ANSI art
+        ansiArtArea.setFont(new Font("Monospaced", Font.PLAIN, 20)); // Set a monospaced font
+        ansiArtArea.setBackground(Color.BLACK); // Set background color
+        ansiArtArea.setForeground(Color.WHITE); // Set text color
 
-        // Tilføj ANSI kunstområde til en rullepanel
+        // Add the ANSI art area to a scroll pane
         JScrollPane ansiScrollPane = new JScrollPane(ansiArtArea);
-        ansiScrollPane.setPreferredSize(new Dimension(1400, 600)); // Sæt en passende størrelse for ANSI kunst
-        ansiScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // Vis altid den lodrette rullebjælke
+        ansiScrollPane.setPreferredSize(new Dimension(1400, 600)); // Set a suitable size for ANSI art
+        ansiScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // Always show the vertical scroll bar
 
-        // Tilføj scrollpane til ANSI panel
+        // Add scroll pane to ANSI panel
         ansiPanel.add(ansiScrollPane, gbc); // Add to the GridBagLayout
 
-        // Tilføj ANSI panel til vinduet
-        frame.add(ansiPanel, BorderLayout.NORTH); // Tilføj til toppen af vinduet
+        // Add ANSI panel to the window
+        frame.add(ansiPanel, BorderLayout.NORTH); // Add to the top of the window
 
-        // Sæt titelskærmens ANSI kunst, når applikationen starter
-        updateAnsiArt(ANSIArt.getTitleScreen()); // Vis titelskærmens ANSI kunst centreret
+        // Set the title screen ANSI art when the application starts
+        updateAnsiArt(ANSIArt.getTitleScreen()); // Display title screen ANSI art centered
 
-
-        // Opret et tekstområde til at vise meddelelser til spilleren
+        // Create a text area to show messages to the player
         textArea = new JTextArea();
-        textArea.setEditable(false); // Gør tekstområdet ikke-redigerbart
-        textArea.setLineWrap(true); // Aktiver linjeskift
-        textArea.setWrapStyleWord(true); // Wrap linjer ved ordgrænser
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 16)); // Sæt en monospaced skrifttype
-        textArea.setBackground(Color.BLACK); // Sæt baggrundsfarve
-        textArea.setForeground(Color.WHITE); // Sæt tekstfarve
+        textArea.setEditable(false); // Make the text area non-editable
+        textArea.setLineWrap(true); // Enable line wrap
+        textArea.setWrapStyleWord(true); // Wrap lines at word boundaries
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 16)); // Set a monospaced font
+        textArea.setBackground(Color.BLACK); // Set background color
+        textArea.setForeground(Color.WHITE); // Set text color
 
-        // Opret en rullepanel for tekstområdet
+        // Create a scroll pane for the text area
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // Vis altid den lodrette rullebjælke
-        frame.add(scrollPane, BorderLayout.CENTER); // Tilføj rullepanelet til midten af vinduet
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // Always show the vertical scroll bar
+        frame.add(scrollPane, BorderLayout.CENTER); // Add the scroll pane to the center of the window
 
-        // Opret inputpanel, der indeholder inputfeltet og sendeknappen
+        // Create input panel containing the input field and send button
         JPanel inputPanel = new JPanel(new BorderLayout());
-        inputField = new JTextField(); // Inputfelt til brugerens kommandoer
-        sendButton = new JButton("Send"); // Knap til at indsende kommandoer
+        inputField = new JTextField(); // Input field for user commands
+        sendButton = new JButton("Send"); // Button to submit commands
 
-        // Stil inputfeltet til at matche tekstområdet
-        inputField.setBackground(Color.BLACK); // Sæt baggrundsfarve
-        inputField.setForeground(Color.WHITE); // Sæt tekstfarve
-        inputField.setCaretColor(Color.WHITE); // Sæt markørfarven
-        inputField.setFont(new Font("Monospaced", Font.PLAIN, 16)); // Brug samme skrifttype
+        // Style the input field to match the text area
+        inputField.setBackground(Color.BLACK); // Set background color
+        inputField.setForeground(Color.WHITE); // Set text color
+        inputField.setCaretColor(Color.WHITE); // Set caret color
+        inputField.setFont(new Font("Monospaced", Font.PLAIN, 16)); // Use the same font
 
-        // Handling for sendeknappen
+        // Action handling for the send button
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                handleInput(); // Kald handleInput-metoden ved knaptryk
+                handleInput(); // Call handleInput method on button press
             }
         });
 
-        // Tilføj key binding for Enter-tasten
+        // Add key binding for the Enter key
         inputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                handleInput(); // Kald handleInput-metoden ved Enter-tastetryk
+                handleInput(); // Call handleInput method on Enter key press
             }
         });
 
-        // Tilføj inputfeltet og sendeknappen til inputpanelet
-        inputPanel.add(inputField, BorderLayout.CENTER); // Tilføj inputfeltet til midten
-        inputPanel.add(sendButton, BorderLayout.EAST); // Tilføj sendeknappen til højre
+        // Add the input field and send button to the input panel
+        inputPanel.add(inputField, BorderLayout.CENTER); // Add the input field to the center
+        inputPanel.add(sendButton, BorderLayout.EAST); // Add the send button to the right
 
-        // Tilføj inputpanelet til bunden af vinduet
+        // Add the input panel to the bottom of the window
         frame.add(inputPanel, BorderLayout.SOUTH);
 
-        // Vis vinduet for brugeren
+        // Show the window to the user
         frame.setVisible(true);
     }
 
-    // Metode til at indstille GameController
+    // Method to set the GameController
     public void setGameController(GameController controller) {
         this.gameController = controller;
     }
 
-    // Metode til at opdatere ANSI kunst baseret på det aktuelle rum
+    // Method to update ANSI art based on the current room
     public void updateAnsiArt(String ansiArt) {
-        String[] lines = ansiArt.split("\n"); // Del ANSI kunsten i individuelle linjer
+        String[] lines = ansiArt.split("\n"); // Split ANSI art into individual lines
         StringBuilder centeredArt = new StringBuilder();
         int maxWidth = ansiArtArea.getVisibleRect().width / ansiArtArea.getFontMetrics(ansiArtArea.getFont()).charWidth('M'); // Estimate maximum width
 
-
         for (String line : lines) {
-            int padding = (maxWidth - line.length()) / 2; // Beregn padding for centering
+            int padding = (maxWidth - line.length()) / 2; // Calculate padding for centering
             if (padding > 0) {
-                centeredArt.append(" ".repeat(Math.max(0, padding))); // Tilføj mellemrum for centering
+                centeredArt.append(" ".repeat(Math.max(0, padding))); // Add spaces for centering
             }
-            centeredArt.append(line).append("\n"); // Vedhæft den originale linje
+            centeredArt.append(line).append("\n"); // Append the original line
         }
 
-        ansiArtArea.setText(centeredArt.toString()); // Sæt den centrerede tekst
+        ansiArtArea.setText(centeredArt.toString()); // Set the centered text
     }
 
-    // Behandl input fra brugeren
+    // Process user input
     private void handleInput() {
-        String input = inputField.getText().trim(); // Få og trim brugerinput
+        String input = inputField.getText().trim(); // Get and trim user input
         if (!input.isEmpty()) {
-            inputField.setText(""); // Ryd inputfeltet efter indsendelse
-            processInput(input); // Behandl brugerinput
+            inputField.setText(""); // Clear the input field after submission
+            clearOutput(); // Clear the output area before processing the input
+            processInput(input); // Process user input
         }
     }
 
-    // Metode til at behandle brugerinputkommandoer
+    // Process user input commands
     private void processInput(String input) {
         if (gameController != null) {
-            gameController.processCommand(input); // Send input til GameController
+            // Normalize input by trimming and converting to lower case
+            String trimmedInput = input.trim().toLowerCase();
+
+            switch (trimmedInput) {
+                case "look":
+                    Room currentRoom = gameController.getCurrentRoom(); // Get the current room
+                    displayRoomDescription(currentRoom); // Call the displayRoomDescription method
+                    showRoomItems(currentRoom); // Show items in the current room
+                    break;
+                case "inventory":
+                    displayInventory(); // Show inventory if the command is "inventory"
+                    break;
+                case "help":
+                    showHelp(); // Show help instructions
+                    break;
+                default:
+                    if (trimmedInput.startsWith("take ")) {
+                        String itemName = trimmedInput.substring(5); // Extract the item name
+                        handleTakeItem(itemName); // Handle taking an item
+                    } else if (trimmedInput.startsWith("drop ")) {
+                        String itemName = trimmedInput.substring(5); // Extract the item name
+                        handleDropItem(itemName); // Handle dropping an item
+                    } else {
+                        gameController.processCommand(trimmedInput); // Handle other commands
+                    }
+                    break;
+            }
         } else {
-            showMessage("Error: GameController is not set."); // Forbedret fejlmeddelelse
+            showMessage("Error: GameController is not set."); // Improved error message
         }
     }
 
-    // Metode til at rydde outputtekstområdet
-    public void clearOutput() {
-        textArea.setText(""); // Ryd tekstområdet
+    // Handle taking an item from the current room
+    private void handleTakeItem(String itemName) {
+        boolean success = gameController.takeItem(itemName); // Attempt to take the item
+        if (success) {
+            showItemPickedUp(itemName); // Notify the user of item pickup
+        } else {
+            showMessage("You couldn't find a " + itemName + " here."); // Notify failure
+        }
     }
 
-    // Metode til at vise meddelelser til brugeren i et stiliseret format
-    public void showMessage(String message) {
-        textArea.append(message + "\n"); // Vedhæft meddelelsen til tekstområdet
-        textArea.setCaretPosition(textArea.getDocument().getLength()); // Auto-scroll til bunden af tekstområdet
+    // Handle dropping an item from the inventory
+    private void handleDropItem(String itemName) {
+        boolean success = gameController.dropItem(itemName); // Attempt to drop the item
+        if (success) {
+            showItemDropped(itemName); // Notify the user of item drop
+        } else {
+            showMessage("You don't have a " + itemName + " in your inventory."); // Notify failure
+        }
     }
 
-    // Metode til at vise rummets beskrivelser i en overlay-stil
+    // Method to show item picked up message
+    public void showItemPickedUp(String itemName) {
+        showMessage("You picked up the " + itemName + "."); // Notify the user of item pickup
+    }
+
+    // Method to show item dropped message
+    public void showItemDropped(String itemName) {
+        showMessage("You dropped the " + itemName + "."); // Notify the user of item drop
+    }
+
+    // Method to display room descriptions in an overlay style
     public void displayRoomDescription(Room room) {
-        String description = "You are in " + room.getName() + "\n" + room.getDescription(); // Opret rumbeskrivelse
-        showMessage(description); // Vis beskrivelsen i meddelelsesområdet
+        String description = "You are in " + room.getName() + "\n" + room.getDescription(); // Create room description
+        showMessage(description); // Show the description in the message area
     }
 
-    // Metode til at vise hjælpeinstruktioner til spilleren
+    // Method to show items in the current room
+    public void showRoomItems(Room room) {
+        StringBuilder itemsMessage = new StringBuilder("Items in this room:\n");
+        if (room.getItems().isEmpty()) {
+            itemsMessage.append("There are no items in this room.");
+        } else {
+            for (Item item : room.getItems()) {
+                // Assuming Item has getName() and getDescription() methods
+                itemsMessage.append("- ").append(item.getLongName()).append(" (").append(item.getShortName()).append(")\n");
+            }
+        }
+        showMessage(itemsMessage.toString()); // Show message with items
+    }
+
+    // Method to display the player's inventory
+    private void displayInventory() {
+        StringBuilder inventoryMessage = new StringBuilder("Your Inventory:\n");
+        if (gameController.getPlayerInventory().isEmpty()) {
+            inventoryMessage.append("Your inventory is empty.");
+        } else {
+            for (Item item : gameController.getPlayerInventory()) {
+                inventoryMessage.append("- ").append(item).append("\n");
+            }
+        }
+        showMessage(inventoryMessage.toString()); // Show the inventory in the message area
+    }
+
+    // Method to clear the output text area
+    public void clearOutput() {
+        textArea.setText(""); // Clear the text area
+    }
+
+    // Method to show messages to the user in a styled format
+    public void showMessage(String message) {
+        textArea.append(message + "\n"); // Append the new message to the text area
+        textArea.setCaretPosition(textArea.getDocument().getLength()); // Auto-scroll to the bottom of the text area
+    }
+
+    // Method to show help instructions to the player
     public void showHelp() {
         String helpMessage = "Available commands:\n" +
                 "go north, go south, go east, go west - to move between rooms.\n" +
-                "look - to describe the current room.\n" +
+                "look - to describe the current room and show items present.\n" +
+                "take [item] - to pick up an item from the room.\n" +
+                "drop [item] - to drop an item from your inventory.\n" +
+                "inventory - to show your current items.\n" + // Added inventory command to help
                 "unlock - to unlock the door.\n" +
                 "exit - to quit the game.\n" +
                 "help - to show this message.\n" +
-                "show map - to display the map."; // Hjælpeinstruktioner
-        showMessage(helpMessage); // Vis hjælpebeskeden
+                "show map - to display the map."; // Help instructions
+        showMessage(helpMessage); // Show help message
     }
 
-    // Metode til at vise kortet over det aktuelle rum og dets forbindelser
-    public void showMap(String currentRoomName, String eastRoomName, String southRoomName, String westRoomName) {
+    // Method to display the map of the current room and its connections
+    public void showMap(String currentRoomName, String eastRoomName, String southRoomName, String westRoomName, String northRoomName) {
         StringBuilder mapDisplay = new StringBuilder();
         mapDisplay.append("Current Room: ").append(currentRoomName).append("\n");
         mapDisplay.append("Adjacent Rooms:\n");
-        mapDisplay.append("East: ").append(eastRoomName).append("\n");
+        mapDisplay.append("North: ").append(northRoomName).append("\n");
         mapDisplay.append("South: ").append(southRoomName).append("\n");
         mapDisplay.append("West: ").append(westRoomName).append("\n");
+        mapDisplay.append("East: ").append(eastRoomName).append("\n");
 
-        // Vis kortet i en dialog
+        // Show the map in a dialog
         JOptionPane.showMessageDialog(frame, mapDisplay.toString(), "Game Map", JOptionPane.INFORMATION_MESSAGE);
     }
 }

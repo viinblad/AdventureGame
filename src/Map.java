@@ -1,6 +1,6 @@
+
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,14 +8,40 @@ public class Map {
     private JPanel mapPanel;
     private Room startingRoom;    // Reference to the starting room
     private List<Room> roomsList; // List to hold all rooms
+    private List<Item> itemsList; // List to hold all items
 
     public Map() {
         mapPanel = new JPanel(new GridBagLayout());
         roomsList = new ArrayList<>();
+        itemsList = new ArrayList<>(); // Initialize items list
         this.setupRooms();  // Setup rooms when initializing map
     }
 
-    // Set up rooms and their connections
+    // Connect two rooms in a specific direction
+    private void connectRooms(Room room1, Room room2, String direction) {
+        switch (direction.toLowerCase()) {
+            case "north":
+                room1.setNorth(room2);
+                room2.setSouth(room1);
+                break;
+            case "south":
+                room1.setSouth(room2);
+                room2.setNorth(room1);
+                break;
+            case "east":
+                room1.setEast(room2);
+                room2.setWest(room1);
+                break;
+            case "west":
+                room1.setWest(room2);
+                room2.setEast(room1);
+                break;
+            default:
+                System.out.println("Invalid direction!");
+        }
+    }
+
+    // Set up rooms, their connections, and the items they contain
     private void setupRooms() {
         // Create and initialize the rooms
         Room room1 = new Room("The Amusement a long time ago", "This is where your journey begins.");
@@ -39,68 +65,41 @@ public class Map {
         roomsList.add(room8);
         roomsList.add(room9);
 
-        // Connect rooms (two-way linking handled in Room class)
-        room1.setEast(room2);  // Connect room1 to room2
-        room1.setSouth(room4); // Connect room1 to room4
-        room2.setEast(room3);  // Connect room2 to room3
-        room3.setSouth(room6);  // Connect room3 to room6
-        room6.setSouth(room9);  // Connect room6 to room9
-        room9.setWest(room8);   // Connect room9 to room8
-        room8.setNorth(room5);  // Connect room8 to room5
-        room8.setWest(room7);   // Connect room8 to room7
-        room7.setNorth(room4);  // Connect room7 to room4
+        // Automatically connect rooms using connectRooms method
+        connectRooms(room1, room2, "east");
+        connectRooms(room1, room4, "south");
+        connectRooms(room2, room3, "east");
+        connectRooms(room3, room6, "south");
+        connectRooms(room6, room9, "south");
+        connectRooms(room9, room8, "west");
+        connectRooms(room8, room5, "north");
+        connectRooms(room8, room7, "west");
+        connectRooms(room7, room4, "north");
 
         // Lock the door to the east in room2
         room2.lockEast(); // Locking the eastern door of room2
 
         // Set the starting room
         startingRoom = room1;
+
+        // Create items
+        Item rustyKey = new Item("Rusty Key", "A small rusty key.", "key");
+        Item magicWand = new Item("Magic Wand", "A wand that casts spells.", "wand");
+        Item shinySword = new Item("Shiny Sword", "A sword that shines brightly.", "sword");
+
+        // Add items to the items list
+        itemsList.add(rustyKey);
+        itemsList.add(magicWand);
+        itemsList.add(shinySword);
+
+        // Place items in specific rooms
+        room1.addItem(rustyKey);   // Add rusty key to room1
+        room2.addItem(magicWand);   // Add magic wand to room2
+        room3.addItem(shinySword);   // Add shiny sword to room3
     }
 
-    // New method to handle room transitions
-    public Room moveToRoom(Room currentRoom, String direction) throws InterruptedException, IOException {
-        Room nextRoom = null;
 
-        switch (direction) {
-            case "north":
-                nextRoom = currentRoom.getNorth();
-                break;
-            case "south":
-                nextRoom = currentRoom.getSouth();
-                break;
-            case "east":
-                if (currentRoom.isEastLocked()) { // Check if the door is locked
-                    return null; // Return null if locked
-                }
-                nextRoom = currentRoom.getEast();
-                break;
-            case "west":
-                nextRoom = currentRoom.getWest();
-                break;
-            default:
-                return null; // Invalid direction
-        }
-
-        // If moving to a valid room
-        if (nextRoom != null) {
-            // Show loading screen if not moving to the starting room
-            if (currentRoom != startingRoom) {
-                showLoadingScreen(); // Call to loading screen display
-            }
-            return nextRoom; // Return the next room
-        } else {
-            return null; // Handle invalid movement
-        }
-    }
-
-    // Method to display the loading screen
-    private void showLoadingScreen() throws InterruptedException, IOException {
-        // Display loading animation
-        LoadingScreen loadingScreen = new LoadingScreen();
-        loadingScreen.displayLoading(); // Assuming this method already handles UI
-    }
-
-    // Method to display the map
+    // Method to display the map need to be implementet later
     public void displayMap() {
         mapPanel.removeAll(); // Clear previous map display
 
@@ -178,5 +177,10 @@ public class Map {
     // Return the starting room
     public Room getStartingRoom() {
         return startingRoom;
+    }
+
+    // Optional: Method to retrieve items from the items list
+    public List<Item> getItemsList() {
+        return itemsList;
     }
 }

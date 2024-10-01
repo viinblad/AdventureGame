@@ -1,7 +1,10 @@
+import java.util.ArrayList;
+
 public class Room {
     private String name;
     private String description;
     private Room north, south, east, west;
+    private ArrayList<Item> items; // List of items in the room
     private boolean visited = false;  // Mark whether the room has been visited
     private boolean lockedEast = false;  // Marks if the eastern door is locked
 
@@ -9,6 +12,7 @@ public class Room {
     public Room(String name, String description) {
         this.name = name;
         this.description = description;
+        this.items = new ArrayList<>(); // Initialize the item list
     }
 
     // Getter and setter methods for directions with automatic bidirectional linking
@@ -74,5 +78,40 @@ public class Room {
 
     public boolean isEastLocked() {
         return lockedEast;
+    }
+
+    // Item functions
+    public void addItem(Item item) {
+        items.add(item);
+    }
+
+    public void removeItem(Item item) {
+        items.remove(item);
+    }
+
+    public ArrayList<Item> getItems() {
+        return items;
+    }
+
+    // Method to find an item by its short name
+    public Item findItem(String itemName) {
+        for (Item item : items) {
+            if (item.getShortName().equalsIgnoreCase(itemName)) {
+                return item; // Return the item if found
+            }
+        }
+        return null; // Item not found
+    }
+
+    // Show items in the room
+    public void showItems() {
+        if (items.isEmpty()) {
+            System.out.println("There are no items in this room.");
+        } else {
+            System.out.println("You see the following items: ");
+            for (Item item : items) {
+                System.out.println("- " + item.getLongName()); // Assuming you want to print the long name
+            }
+        }
     }
 }
