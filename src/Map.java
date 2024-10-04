@@ -87,6 +87,7 @@ public class Map {
         Item magicWand = new Item("Magic Wand", "A wand that casts spells.", "wand");
         Item shinySword = new Item("Shiny Sword", "A sword that shines brightly.", "sword");
 
+
         // Add items to the items list
         itemsList.add(rustyKey);
         itemsList.add(magicWand);
@@ -96,6 +97,40 @@ public class Map {
         room1.addItem(rustyKey);   // Add rusty key to room1
         room2.addItem(magicWand);   // Add magic wand to room2
         room3.addItem(shinySword);   // Add shiny sword to room3
+
+        // Create food
+        Food apple = new Food("apple", "Fresh Apple", "A juicy red apple.", 10);
+        Food bread = new Food("bread", "Loaf of Bread", "A warm loaf of bread.", 15);
+        Food cheese = new Food("cheese", "Cheese Wheel", "A wheel of cheese.", 20);
+        Food poisonousMushroom = new Food("poisonous_mushroom", "Poisonous Mushroom", "A mushroom that looks delicious but is actually poisonous.", -10); // Negative health effect
+
+        // Add food to the food list
+        itemsList.add(apple);
+        itemsList.add(bread);
+        itemsList.add(cheese);
+        itemsList.add(poisonousMushroom);
+
+        // Place food in specific rooms
+        room1.addItem(apple);   // Add apple to room1
+        room4.addItem(bread);   // Add bread to room4
+        room6.addItem(cheese);   // Add cheese to room6
+        room8.addItem(poisonousMushroom);   // Add poisonous mushroom to room8
+
+        // Create potions - HP,ATT Boost, poisonous true or false
+        Potion healingPotion = new Potion("healing_potion", "Healing Potion", "A potion that restores health.", 30, 0, false); // healing potion
+        Potion attackPotion = new Potion("attack_potion", "Attack Boost Potion", "A potion that boosts your attack.", 0, 10, false);// attack potion
+        Potion poisonousPotion = new Potion("poisonous_potion", "Poisonous Potion", "A potion that looks refreshing but is actually poisonous.", 50, 0, true);
+
+
+        // Add potions to the potion list
+        itemsList.add(healingPotion);
+        itemsList.add(attackPotion);
+        itemsList.add(poisonousPotion);
+
+        // Place potions in specific rooms
+        room2.addItem(healingPotion);   // Add healing potion to room2
+        room5.addItem(attackPotion);   // Add attack boost potion to room5
+        room7.addItem(poisonousPotion);   // Add poisonous potion to room7
     }
 
 

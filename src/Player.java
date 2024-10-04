@@ -6,11 +6,99 @@ public class Player {
     private List<Item> inventory;           // List to store items in the player's inventory
     private final int MAX_INVENTORY_SIZE = 10; // Maximum number of items in inventory
 
+    private int health;                     // Player's health
+    private final int MAX_HEALTH = 100;     // Maximum health limit
+
     // Constructor
     public Player(Room startingRoom) {
         this.currentRoom = startingRoom;
         this.inventory = new ArrayList<>(); // Initialize the inventory
+        this.health = MAX_HEALTH;
     }
+    // Method to increase health
+    public void increaseHealth(int amount) {
+        this.health += amount;
+        if (this.health > MAX_HEALTH) {
+            this.health = MAX_HEALTH; // Ensure the health doesn't exceed maximum
+        }
+        System.out.println("Your health increased by " + amount + ". Current health: " + this.health);
+    }
+
+    // Method to decrease health
+    public void takeDamage(int damage) {
+        this.health -= damage;
+        if (this.health < 0) {
+            this.health = 0; // Prevent health from going below zero
+        }
+        System.out.println("You took " + damage + " damage. Current health: " + this.health);
+        if (isDead()) {
+            System.out.println("You have died.");
+        }
+    }
+
+
+
+    // Method to check if the player is dead
+    public boolean isDead() {
+        return health == 0;
+    }
+
+    // Getter for current health
+    public int getHealth() {
+        return health; // Return the current health
+    }
+
+    // Getter for maximum health
+    public int getMaxHealth() {
+        return MAX_HEALTH; // Return the maximum health
+    }
+
+    // Consuming rules for the player for food and potions
+    public boolean consumeFood(Food food, UserInterface ui) {
+        if (food.isPoisonous()) {
+            // Apply poison effect to the player
+            takeDamage(food.getHealthRestored()); // Apply damage
+            String message = "You consumed a poisonous food item! You took " + food.getHealthRestored() + " damage.";
+            System.out.println(message);
+            ui.showMessage(message); // Pass the message to the UI
+        } else {
+            // Restore health
+            increaseHealth(food.getHealthRestored());
+            String message = "You consumed " + food.getLongName() + " and restored " + food.getHealthRestored() + " health.";
+            System.out.println(message);
+            ui.showMessage(message); // Pass the message to the UI
+        }
+
+        // Show updated health in UI
+        ui.showHealth(getHealth(), getMaxHealth()); // Move this line here
+
+        // Remove the food from the inventory
+        removeItem(food); // This method removes the item from the inventory
+
+        return true; // Return true if the consumption was successful
+    }
+
+    public boolean consumePotion(Potion potion, UserInterface ui) {
+        if (potion.isPoisonous()) {
+            // Apply poison effect to the player
+            takeDamage(potion.getHealthRestored()); // Apply damage (assuming this is the intended damage)
+            String message = "You consumed a poisonous potion! You took " + potion.getHealthRestored() + " damage.";
+            System.out.println(message);
+            ui.showMessage(message); // Pass the message to the UI
+        } else {
+            // Restore health or apply buffs
+            increaseHealth(potion.getHealthRestored());
+            String message = "You consumed " + potion.getLongName() + " and restored " + potion.getHealthRestored() + " health.";
+            System.out.println(message);
+            ui.showMessage(message); // Pass the message to the UI
+        }
+
+        // Remove the potion from the inventory
+        removeItem(potion); // This method removes the item from the inventory
+
+        return true; // Return true if the consumption was successful
+    }
+
 
     // Move in the specified direction
     public boolean move(String direction) {

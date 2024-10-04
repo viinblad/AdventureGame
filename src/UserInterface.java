@@ -155,6 +155,9 @@ public class UserInterface {
                 case "help":
                     showHelp(); // Show help instructions
                     break;
+                case "health":
+                    gameController.showHealth(); // Call the GameController to display health
+                    break;
                 default:
                     if (trimmedInput.startsWith("take ")) {
                         String itemName = trimmedInput.substring(5); // Extract the item name
@@ -162,6 +165,12 @@ public class UserInterface {
                     } else if (trimmedInput.startsWith("drop ")) {
                         String itemName = trimmedInput.substring(5); // Extract the item name
                         handleDropItem(itemName); // Handle dropping an item
+                    } else if (trimmedInput.startsWith("eat ")) {
+                        // Handle eating food
+                        gameController.handleFoodConsumption(trimmedInput); // Added handling for food consumption
+                    } else if (trimmedInput.startsWith("drink ")) {
+                        // Handle drinking potions
+                        gameController.handlePotionConsumption(trimmedInput); // Added handling for potion consumption
                     } else {
                         gameController.processCommand(trimmedInput); // Handle other commands
                     }
@@ -229,10 +238,31 @@ public class UserInterface {
             inventoryMessage.append("Your inventory is empty.");
         } else {
             for (Item item : gameController.getPlayerInventory()) {
-                inventoryMessage.append("- ").append(item).append("\n");
+                inventoryMessage.append("- ").append(item.getLongName()).append("\n");
             }
         }
         showMessage(inventoryMessage.toString()); // Show the inventory in the message area
+    }
+
+    // Method to display the player's health
+    public void showHealth(int currentHealth, int maxHealth) {
+        String healthMessage = "Your health: " + currentHealth + "/" + maxHealth;
+
+        String healthStatus;
+        // Determine health status message
+        if (currentHealth >= 75) {
+            healthStatus = "You are in great shape!";
+        } else if (currentHealth >= 50) {
+            healthStatus = "You are feeling fine.";
+        } else if (currentHealth >= 25) {
+            healthStatus = "You are hurt, be careful!";
+        } else {
+            healthStatus = "You are in critical condition! Find something to heal.";
+        }
+
+        // Show both health message and status
+        showMessage(healthMessage); // Display the health message
+        showMessage(healthStatus); // Display the health status
     }
 
     // Method to clear the output text area
@@ -248,17 +278,33 @@ public class UserInterface {
 
     // Method to show help instructions to the player
     public void showHelp() {
-        String helpMessage = "Available commands:\n" +
-                "go north, go south, go east, go west - to move between rooms.\n" +
-                "look - to describe the current room and show items present.\n" +
-                "take [item] - to pick up an item from the room.\n" +
-                "drop [item] - to drop an item from your inventory.\n" +
-                "inventory - to show your current items.\n" + // Added inventory command to help
-                "unlock - to unlock the door.\n" +
-                "exit - to quit the game.\n" +
-                "help - to show this message.\n" +
-                "show map - to display the map."; // Help instructions
-        showMessage(helpMessage); // Show help message
+        // Create a StringBuilder to build the help message with a grid layout
+        StringBuilder helpMessage = new StringBuilder("Available commands:\n\n");
+
+        // Define the commands in an array
+        String[][] commands = {
+                {"Move Commands:", "Status commands:", "Action command:"},
+                {"go north", "health", "inventory","drink [potion]"},
+                {"go west", "look", "take [item]","exit" + ": close the game" },
+                {"go east", "show map", "drop [item]"},
+                {"go south", "unlock","eat [food]"},
+               // {"eat [food]", "", "drink [potion]"} // Added food and potion commands
+        };
+
+        // Create a formatted string with three columns
+        for (String[] row : commands) {
+            for (String command : row) {
+                if (!command.isEmpty()) {
+                    helpMessage.append(String.format("%-20s", command)); // Format each command
+                } else {
+                    helpMessage.append(String.format("%-20s", " ")); // Fill empty spaces
+                }
+            }
+            helpMessage.append("\n"); // New line after each row
+        }
+
+        // Show the formatted help message
+        showMessage(helpMessage.toString());
     }
 
     // Method to display the map of the current room and its connections

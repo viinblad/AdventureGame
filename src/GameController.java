@@ -50,7 +50,6 @@ public class GameController {
                 } else {
                     System.err.println("Current room is not initialized.");
                 }
-
             });
         }).start(); // Start the loading thread
     }
@@ -84,6 +83,18 @@ public class GameController {
                 showMap(); // Show the map when the user types 'show map'
                 break;
 
+            case "health": // Command to show player's health
+                showHealth(); // Show the player's health
+                break;
+
+            case String cmd when cmd.startsWith("eat "): // Eat food
+                handleFoodConsumption(command);
+                break;
+
+            case String cmd when cmd.startsWith("drink "): // Drink potion
+                handlePotionConsumption(command);
+                break;
+
             case String cmd when cmd.startsWith("take "): // Take an item
                 handleItemTake(command);
                 break;
@@ -108,6 +119,53 @@ public class GameController {
         }
     }
 
+    // Show the player's current health
+    public void showHealth() {
+        ui.showHealth(player.getHealth(), player.getMaxHealth()); // Call UserInterface to display health
+    }
+
+    // Handle eating food
+    void handleFoodConsumption(String command) {
+        String foodName = command.substring(4).trim(); // Extract the food name
+        if (!foodName.isEmpty()) {
+            Food food = (Food) player.findItemInInventory(foodName); // Find food in inventory
+            if (food != null) {
+                player.consumeFood(food, ui); // Consume food and get message
+                // Don't call ui.showHealth() here since it is handled in consumeFood()
+            } else {
+                ui.showMessage("You don't have that food item.");
+            }
+        } else {
+            ui.showMessage("Eat what?");
+        }
+    }
+
+    // Handle drinking potions
+    void handlePotionConsumption(String command) {
+        String potionName = command.substring(6).trim(); // Extract the potion name
+        if (!potionName.isEmpty()) {
+            Potion potion = (Potion) player.findItemInInventory(potionName); // Find potion in inventory
+            if (potion != null) {
+                player.consumePotion(potion, ui); // Consume potion and get message
+                ui.showHealth(player.getHealth(), player.getMaxHealth()); // Show updated health once
+            } else {
+                ui.showMessage("You don't have that potion item.");
+            }
+        } else {
+            ui.showMessage("Drink what?");
+        }
+    }
+
+
+    // Check if the player's health has dropped to zero
+    private void checkPlayerStatus() {
+        if (player.getHealth() <= 0) {
+            ui.showMessage("You have died. Game over.");
+            soundManager.playSound("gameover"); // Play game over sound
+            System.exit(0); // End the game
+        }
+    }
+
     // Handle player movement
     private void handleMovement(String command) {
         String direction = command.substring(3).trim(); // Extract direction
@@ -120,6 +178,7 @@ public class GameController {
                     SwingUtilities.invokeLater(() -> {
                         if (moved) {
                             ui.displayRoomDescription(player.getCurrentRoom()); // Display new room description
+                            ui.showHealth(player.getHealth(), player.getMaxHealth()); // Update health display
                         } else {
                             ui.showMessage("You cannot go that way."); // Handle invalid movements
                         }
@@ -154,7 +213,7 @@ public class GameController {
         if (!itemToDrop.isEmpty()) {
             boolean success = dropItem(itemToDrop); // Call dropItem method
             if (success) {
-                ui.showItemDropped(itemToDrop); // Notify UI about item drop
+                ui.showItemDropped(itemToDrop); // Notify the user of item drop
             } else {
                 ui.showMessage("You don't have that item.");
             }
