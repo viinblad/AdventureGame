@@ -288,7 +288,7 @@ public class UserInterface {
                 {"go west", "look", "take [item]","exit" + ": close the game" },
                 {"go east", "show map", "drop [item]"},
                 {"go south", "unlock","eat [food]"},
-               // {"eat [food]", "", "drink [potion]"} // Added food and potion commands
+
         };
 
         // Create a formatted string with three columns
