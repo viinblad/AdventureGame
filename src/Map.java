@@ -99,10 +99,11 @@ public class Map {
         room3.addItem(shinySword);   // Add shiny sword to room3
 
         // Create food
-        Food apple = new Food("apple", "Fresh Apple", "A juicy red apple.", 10);
-        Food bread = new Food("bread", "Loaf of Bread", "A warm loaf of bread.", 15);
-        Food cheese = new Food("cheese", "Cheese Wheel", "A wheel of cheese.", 20);
-        Food poisonousMushroom = new Food("poisonous_mushroom", "Poisonous Mushroom", "A mushroom that looks delicious but is actually poisonous.", -10); // Negative health effect
+        Food apple = new Food("apple", "Fresh Apple", "A juicy red apple.", 10, false); // Normal food
+        Food bread = new Food("bread", "Loaf of Bread", "A warm loaf of bread.", 15, false); // Normal food
+        Food cheese = new Food("cheese", "Cheese Wheel", "A wheel of cheese.", 20, false); // Normal food
+        Food poisonousMushroom = new Food("poisonous_mushroom", "Poisonous Mushroom", "A mushroom that looks delicious but is actually poisonous.", 10, true); // Poisonous food, health restored but will deduct in the logic
+
 
         // Add food to the food list
         itemsList.add(apple);
@@ -115,6 +116,7 @@ public class Map {
         room4.addItem(bread);   // Add bread to room4
         room6.addItem(cheese);   // Add cheese to room6
         room8.addItem(poisonousMushroom);   // Add poisonous mushroom to room8
+        room1.addItem(poisonousMushroom);   // Add poisonous mushroom to room1
 
         // Create potions - HP,ATT Boost, poisonous true or false
         Potion healingPotion = new Potion("healing_potion", "Healing Potion", "A potion that restores health.", 30, 0, false); // healing potion

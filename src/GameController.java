@@ -161,7 +161,7 @@ public class GameController {
     private void checkPlayerStatus() {
         if (player.getHealth() <= 0) {
             ui.showMessage("You have died. Game over.");
-            soundManager.playSound("gameover"); // Play game over sound
+            soundManager.playSound("game over"); // Play game over sound
             System.exit(0); // End the game
         }
     }
