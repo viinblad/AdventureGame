@@ -20,7 +20,7 @@ public class GameController {
     // Initialize the game by setting the starting room and creating a Player
     private void initializeGame() {
         Room startingRoom = gameMap.getStartingRoom(); // Get the starting room from the game map
-        player = new Player(startingRoom); // Initialize Player with the starting room
+        player = new Player(startingRoom, ui); // Initialize Player with the starting room
     }
 
     // Start the game and display the loading screen
@@ -103,6 +103,14 @@ public class GameController {
                 handleItemDrop(command);
                 break;
 
+            case String cmd when cmd.startsWith("equip "): // Equip a weapon
+                handleEquipWeapon(command);
+                break;
+
+            case String cmd when cmd.startsWith("attack"): //command to attack
+                handleAttack();
+                break;
+
             case "inventory": // Command to show inventory
                 player.displayInventory(); // Show the player's inventory
                 break;
@@ -119,18 +127,41 @@ public class GameController {
         }
     }
 
-    // Show the player's current health
-    public void showHealth() {
-        ui.showHealth(player.getHealth(), player.getMaxHealth()); // Call UserInterface to display health
+    // Handle attack
+    public void handleAttack() {
+        player.attack(); // Call player's attack
     }
 
+    //Handle equipping a weapon
+    public void handleEquipWeapon(String command) {
+        String weaponName = command.substring(6).trim(); // Extract the weapon name
+        if (!weaponName.isEmpty()) {
+            // Find the weapon in the player's inventory using the name
+            Weapon weapon = (Weapon) player.findItemInInventory(weaponName);
+            if (weapon != null) {
+                // Now try to equip the weapon
+                if (player.equipWeapon(weapon)) { // Call equipWeapon and check if it was successful
+                    ui.showMessage( weapon.getLongName() + ".");
+                } else {
+                    ui.showMessage("You don't have that weapon."); // This case should not happen with the above check
+                }
+            } else {
+                ui.showMessage("You don't have that weapon."); // Could not find the weapon
+            }
+        } else {
+            ui.showMessage("Equip what?");
+        }
+    }
+
+
+
     // Handle eating food
-    void handleFoodConsumption(String command) {
+    void handleFoodConsumption(String command) { // reason for void because they don't have to return value note for myself
         String foodName = command.substring(4).trim(); // Extract the food name
         if (!foodName.isEmpty()) {
             Food food = (Food) player.findItemInInventory(foodName); // Find food in inventory
             if (food != null) {
-                player.consumeFood(food, ui); // Consume food and get message
+                player.consumeFood(food); // Consume food and get message
                 // Don't call ui.showHealth() here since it is handled in consumeFood()
             } else {
                 ui.showMessage("You don't have that food item.");
@@ -146,7 +177,7 @@ public class GameController {
         if (!potionName.isEmpty()) {
             Potion potion = (Potion) player.findItemInInventory(potionName); // Find potion in inventory
             if (potion != null) {
-                player.consumePotion(potion, ui); // Consume potion and get message
+                player.consumePotion(potion); // Consume potion and get message
                 ui.showHealth(player.getHealth(), player.getMaxHealth()); // Show updated health once
             } else {
                 ui.showMessage("You don't have that potion item.");
@@ -154,6 +185,11 @@ public class GameController {
         } else {
             ui.showMessage("Drink what?");
         }
+    }
+
+    // Show the player's current health
+    public void showHealth() {
+        ui.showHealth(player.getHealth(), player.getMaxHealth()); // Call UserInterface to display health
     }
 
 
@@ -267,6 +303,11 @@ public class GameController {
     // Player class getter for PlayerInventory
     public List<Item> getPlayerInventory() {
         return player.getInventory(); // Assuming player has a method to get inventory
+    }
+
+    // Add this method to the GameController class
+    public Weapon getEquippedWeapon() {
+        return player.getEquippedWeapon(); // Assuming the Player class has a method to get the equipped weapon
     }
 
     // Take an item from the current room

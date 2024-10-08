@@ -203,7 +203,7 @@ public class UserInterface {
 
     // Method to show item picked up message
     public void showItemPickedUp(String itemName) {
-        showMessage("You picked up the " + itemName + "."); // Notify the user of item pickup
+        showMessage( "the "+ itemName + "."); // Notify the user of item pickup
     }
 
     // Method to show item dropped message
@@ -238,7 +238,12 @@ public class UserInterface {
             inventoryMessage.append("Your inventory is empty.");
         } else {
             for (Item item : gameController.getPlayerInventory()) {
-                inventoryMessage.append("- ").append(item.getLongName()).append("\n");
+                String equippedMessage = ""; // Initialize the equipped message
+                // Check if the item is the equipped weapon and display accordingly
+                if (item instanceof Weapon && item.equals(gameController.getEquippedWeapon())) {
+                    equippedMessage = " (equipped)"; // Set equipped message
+                }
+                inventoryMessage.append("- ").append(item.getLongName()).append(equippedMessage).append("\n");
             }
         }
         showMessage(inventoryMessage.toString()); // Show the inventory in the message area
@@ -285,10 +290,9 @@ public class UserInterface {
         String[][] commands = {
                 {"Move Commands:", "Status commands:", "Action command:"},
                 {"go north", "health", "inventory","drink [potion]"},
-                {"go west", "look", "take [item]","exit" + ": close the game" },
-                {"go east", "show map", "drop [item]"},
+                {"go west", "look", "take [item]","attack[]" },
+                {"go east", "show map", "drop [item]", "exit" + ": close the game"},
                 {"go south", "unlock","eat [food]"},
-
         };
 
         // Create a formatted string with three columns

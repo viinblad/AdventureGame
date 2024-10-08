@@ -82,6 +82,19 @@ public class Map {
         // Set the starting room
         startingRoom = room1;
 
+        // Create Starter weapon
+        MeleeWeapon starterWeapon = new MeleeWeapon("wooden_sword", "Wooden Sword", "A basic wooden sword.", 5);
+        room1.addItem(starterWeapon); // Add the starter weapon to the starting room
+
+        // Create weapons
+        MeleeWeapon sword = new MeleeWeapon("sword", "Iron Sword", "A strong iron sword.", 15);
+        RangedWeapon bow = new RangedWeapon("bow", "Wooden Bow", "A bow that can shoot arrows.", 12, 5); // Bow with 5 arrows
+
+        // Add weapons to specific rooms
+        room3.addItem(sword);  // Sword in room3
+        room7.addItem(bow);    // Bow in room7
+        room1.addItem(bow);
+
         // Create items
         Item rustyKey = new Item("Rusty Key", "A small rusty key.", "key");
         Item magicWand = new Item("Magic Wand", "A wand that casts spells.", "wand");

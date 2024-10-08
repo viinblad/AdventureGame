@@ -1,5 +1,5 @@
 public class Item {
-    private String shortName;
+    String shortName;
     private String longName;       // Full name of the item
     private String description;    // Description of the item
 
