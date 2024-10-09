@@ -83,39 +83,45 @@ public class Map {
         startingRoom = room1;
 
         // Create Starter weapon
-        MeleeWeapon starterWeapon = new MeleeWeapon("wooden_sword", "Wooden Sword", "A basic wooden sword.", 5);
+        MeleeWeapon starterWeapon = new MeleeWeapon("wooden sword", "Wooden Sword", "A basic wooden sword.", 5);
         room1.addItem(starterWeapon); // Add the starter weapon to the starting room
 
+
+
+
         // Create weapons
-        MeleeWeapon sword = new MeleeWeapon("sword", "Iron Sword", "A strong iron sword.", 15);
+
         RangedWeapon bow = new RangedWeapon("bow", "Wooden Bow", "A bow that can shoot arrows.", 12, 5); // Bow with 5 arrows
+        RangedWeapon wand = new RangedWeapon("wand", "A magic wand that casts spells.", "a wand that cast spells",18,20);
 
         // Add weapons to specific rooms
-        room3.addItem(sword);  // Sword in room3
+
         room7.addItem(bow);    // Bow in room7
-        room1.addItem(bow);
+        room2.addItem(wand); // wand in room 2
+
+
+        // Create enemy with their weapon
+        MeleeWeapon sword = new MeleeWeapon("sword", "Iron Sword", "A strong iron sword.", 15);
+        OrcEnemy orcEnemy = new OrcEnemy("Grug", "An orc warrior.", 15, sword); // Orc with a sword
+        room1.addEnemy(orcEnemy); // Add orc enemy to room1
 
         // Create items
         Item rustyKey = new Item("Rusty Key", "A small rusty key.", "key");
-        Item magicWand = new Item("Magic Wand", "A wand that casts spells.", "wand");
-        Item shinySword = new Item("Shiny Sword", "A sword that shines brightly.", "sword");
+
 
 
         // Add items to the items list
         itemsList.add(rustyKey);
-        itemsList.add(magicWand);
-        itemsList.add(shinySword);
 
         // Place items in specific rooms
         room1.addItem(rustyKey);   // Add rusty key to room1
-        room2.addItem(magicWand);   // Add magic wand to room2
-        room3.addItem(shinySword);   // Add shiny sword to room3
+
 
         // Create food
         Food apple = new Food("apple", "Fresh Apple", "A juicy red apple.", 10, false); // Normal food
         Food bread = new Food("bread", "Loaf of Bread", "A warm loaf of bread.", 15, false); // Normal food
         Food cheese = new Food("cheese", "Cheese Wheel", "A wheel of cheese.", 20, false); // Normal food
-        Food poisonousMushroom = new Food("poisonous_mushroom", "Poisonous Mushroom", "A mushroom that looks delicious but is actually poisonous.", 10, true); // Poisonous food, health restored but will deduct in the logic
+        Food poisonousMushroom = new Food("mushroom", "Poisonous Mushroom", "A mushroom that looks delicious but is actually poisonous.", 10, true); // Poisonous food, health restored but will deduct in the logic
 
 
         // Add food to the food list

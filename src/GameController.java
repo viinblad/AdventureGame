@@ -4,6 +4,7 @@ import java.util.List;
 
 public class GameController {
     private Player player; // Instance of Player to manage player state
+    private Enemy enemy; // Instance of the current enemy in the room
     private UserInterface ui; // User interface for displaying messages and getting input
     private SoundManager soundManager; // Manages game sounds
     private Map gameMap; // Instance of the Map class for displaying the game map
@@ -16,13 +17,6 @@ public class GameController {
         initializeGame(); // Initialize the game and create the Player
         soundManager.startTheme("resources/sounds/theme_mix.wav"); // Start background theme music
     }
-
-    // Initialize the game by setting the starting room and creating a Player
-    private void initializeGame() {
-        Room startingRoom = gameMap.getStartingRoom(); // Get the starting room from the game map
-        player = new Player(startingRoom, ui); // Initialize Player with the starting room
-    }
-
     // Start the game and display the loading screen
     public void startGame() {
         System.out.println("Starting the game...");
@@ -46,13 +40,29 @@ public class GameController {
                 soundManager.playSound("start"); // Play sound for starting the game
 
                 if (player.getCurrentRoom() != null) {
-                    ui.displayRoomDescription(player.getCurrentRoom()); // Use Player to get current room
+                    ui.displayRoomDescription(player.getCurrentRoom()); // Display current room
                 } else {
                     System.err.println("Current room is not initialized.");
                 }
             });
         }).start(); // Start the loading thread
     }
+
+    // Initialize the game by setting the starting room and creating a Player
+    private void initializeGame() {
+        Room startingRoom = gameMap.getStartingRoom(); // Get the starting room from the game map
+        player = new Player(startingRoom, ui); // Initialize Player with the starting room
+        updateCurrentEnemy(); // Check for enemies in the starting room
+    }
+
+    // Update the current enemy based on the player's current room
+    private void updateCurrentEnemy() {
+        Room currentRoom = player.getCurrentRoom();
+        List<Enemy> enemies = currentRoom.getEnemies();
+        enemy = (enemies.isEmpty()) ? null : enemies.get(0); // Set the enemy to the first one found
+    }
+
+
 
     // Process user commands
     public void processCommand(String command) {
@@ -66,103 +76,103 @@ public class GameController {
             case String cmd when cmd.startsWith("go "): // Check for movement commands
                 handleMovement(command);
                 break;
-
             case "look": // Command to look around
                 lookAround(); // Describe the current room and show items
                 break;
-
             case "help": // Command to show help
                 ui.showHelp(); // Display help instructions
                 break;
-
             case "unlock": // Command to unlock a door
                 unlockDoor(); // Attempt to unlock the door
                 break;
-
             case "show map": // Command to show the map
                 showMap(); // Show the map when the user types 'show map'
                 break;
-
             case "health": // Command to show player's health
                 showHealth(); // Show the player's health
                 break;
-
             case String cmd when cmd.startsWith("eat "): // Eat food
                 handleFoodConsumption(command);
                 break;
-
             case String cmd when cmd.startsWith("drink "): // Drink potion
                 handlePotionConsumption(command);
                 break;
-
             case String cmd when cmd.startsWith("take "): // Take an item
                 handleItemTake(command);
                 break;
-
             case String cmd when cmd.startsWith("drop "): // Drop an item
                 handleItemDrop(command);
                 break;
-
             case String cmd when cmd.startsWith("equip "): // Equip a weapon
                 handleEquipWeapon(command);
                 break;
-
-            case String cmd when cmd.startsWith("attack"): //command to attack
-                handleAttack();
+            case String cmd when cmd.startsWith("attack"): // Command to attack
+                String enemyName = command.substring(7).trim(); // Extract enemy name
+                handleAttack(enemyName);
                 break;
-
             case "inventory": // Command to show inventory
                 player.displayInventory(); // Show the player's inventory
                 break;
-
             case "exit": // Command to exit the game
                 ui.showMessage("Exiting the game.");
                 soundManager.close(); // Close SoundManager when exiting the game
                 System.exit(0); // Exit the application
                 break;
-
             default: // Handle unknown commands
                 ui.showMessage("Invalid command.");
                 break;
         }
     }
 
-    // Handle attack
-    public void handleAttack() {
-        player.attack(); // Call player's attack
+
+    //method to handle player attack and fight with enemy
+    public void handleAttack(String enemyName) {
+        updateCurrentEnemy(); // Ensure the current enemy is up to date
+
+        if (enemy == null) {
+            ui.showMessage("There are no enemies to attack.");
+            return;
+        }
+
+        // Clear output before displaying the attack
+        ui.clearOutput();
+        player.attack(enemyName); // Call the player's attack method
+
+        // After the attack, check if the enemy is dead
+        if (enemy.isDead()) {
+            enemy.dropWeapon(player.getCurrentRoom()); // Drop the enemy's weapon into the room
+            player.getCurrentRoom().removeEnemy(enemy); // Remove the enemy from the room
+            enemy = null; // Reset current enemy since it's defeated
+            updateCurrentEnemy(); // Update the enemy after removing
+        }
     }
 
-    //Handle equipping a weapon
+    // Handle player equipping a weapon
     public void handleEquipWeapon(String command) {
         String weaponName = command.substring(6).trim(); // Extract the weapon name
         if (!weaponName.isEmpty()) {
-            // Find the weapon in the player's inventory using the name
             Weapon weapon = (Weapon) player.findItemInInventory(weaponName);
             if (weapon != null) {
-                // Now try to equip the weapon
-                if (player.equipWeapon(weapon)) { // Call equipWeapon and check if it was successful
-                    ui.showMessage( weapon.getLongName() + ".");
+                if (player.equipWeapon(weapon)) {
+                    ui.showMessage("You have equipped " + weapon.getLongName() + ".");
                 } else {
-                    ui.showMessage("You don't have that weapon."); // This case should not happen with the above check
+                    ui.showMessage("You don't have that weapon.");
                 }
             } else {
-                ui.showMessage("You don't have that weapon."); // Could not find the weapon
+                ui.showMessage("You don't have that weapon.");
             }
         } else {
             ui.showMessage("Equip what?");
         }
     }
 
-
-
-    // Handle eating food
-    void handleFoodConsumption(String command) { // reason for void because they don't have to return value note for myself
+    // Handle player consuming food
+    void handleFoodConsumption(String command) {
         String foodName = command.substring(4).trim(); // Extract the food name
         if (!foodName.isEmpty()) {
-            Food food = (Food) player.findItemInInventory(foodName); // Find food in inventory
+            Food food = (Food) player.findItemInInventory(foodName);
             if (food != null) {
-                player.consumeFood(food); // Consume food and get message
-                // Don't call ui.showHealth() here since it is handled in consumeFood()
+                player.consumeFood(food); // Consume food
             } else {
                 ui.showMessage("You don't have that food item.");
             }
@@ -171,14 +181,13 @@ public class GameController {
         }
     }
 
-    // Handle drinking potions
+    // Handle player consuming a potion
     void handlePotionConsumption(String command) {
         String potionName = command.substring(6).trim(); // Extract the potion name
         if (!potionName.isEmpty()) {
-            Potion potion = (Potion) player.findItemInInventory(potionName); // Find potion in inventory
+            Potion potion = (Potion) player.findItemInInventory(potionName);
             if (potion != null) {
-                player.consumePotion(potion); // Consume potion and get message
-                ui.showHealth(player.getHealth(), player.getMaxHealth()); // Show updated health once
+                player.consumePotion(potion); // Consume potion
             } else {
                 ui.showMessage("You don't have that potion item.");
             }
@@ -189,17 +198,7 @@ public class GameController {
 
     // Show the player's current health
     public void showHealth() {
-        ui.showHealth(player.getHealth(), player.getMaxHealth()); // Call UserInterface to display health
-    }
-
-
-    // Check if the player's health has dropped to zero
-    private void checkPlayerStatus() {
-        if (player.getHealth() <= 0) {
-            ui.showMessage("You have died. Game over.");
-            soundManager.playSound("game over"); // Play game over sound
-            System.exit(0); // End the game
-        }
+        ui.showHealth(player.getHealth(), player.getMaxHealth()); // Update health in the UI
     }
 
     // Handle player movement
@@ -215,8 +214,9 @@ public class GameController {
                         if (moved) {
                             ui.displayRoomDescription(player.getCurrentRoom()); // Display new room description
                             ui.showHealth(player.getHealth(), player.getMaxHealth()); // Update health display
+                            updateCurrentEnemy(); // Update current enemy after moving
                         } else {
-                            ui.showMessage("You cannot go that way."); // Handle invalid movements
+                            ui.showMessage("You cannot go that way.");
                         }
                     });
                 } catch (InterruptedException | IOException e) {
@@ -224,7 +224,7 @@ public class GameController {
                 }
             }).start();
         } else {
-            ui.showMessage("You cannot go that way."); // Inform player about the blocked direction
+            ui.showMessage("You cannot go that way.");
         }
     }
 
@@ -232,7 +232,7 @@ public class GameController {
     private void handleItemTake(String command) {
         String itemToTake = command.substring(5).trim(); // Extract the item name
         if (!itemToTake.isEmpty()) {
-            boolean success = takeItem(itemToTake); // Call takeItem method
+            boolean success = takeItem(itemToTake);
             if (success) {
                 ui.showItemPickedUp(itemToTake); // Notify UI about item pickup
             } else {
@@ -247,7 +247,7 @@ public class GameController {
     private void handleItemDrop(String command) {
         String itemToDrop = command.substring(5).trim(); // Extract the item name
         if (!itemToDrop.isEmpty()) {
-            boolean success = dropItem(itemToDrop); // Call dropItem method
+            boolean success = dropItem(itemToDrop);
             if (success) {
                 ui.showItemDropped(itemToDrop); // Notify the user of item drop
             } else {
@@ -260,82 +260,95 @@ public class GameController {
 
     // Look around the current room
     private void lookAround() {
-        // Display the current room's description
-        ui.displayRoomDescription(player.getCurrentRoom()); // Use Player to get current room
+        Room currentRoom = player.getCurrentRoom(); // Get the current room
+        ui.displayRoomDescription(currentRoom); // Show the room description
         soundManager.playSound("look"); // Play sound when looking around
 
-        // Display items in the current room
-        ui.showRoomItems(player.getCurrentRoom()); // Show items in the room
+        // Display both items and enemies in the room
+        ui.showRoomItemsAndEnemies(currentRoom); // Call the UI method to display items and enemies
+
+
     }
 
-    // Attempt to unlock a door in the current room
+
+    // Unlock a door in the current room
     private void unlockDoor() {
-        Room currentRoom = player.getCurrentRoom(); // Get the current room
-        // Check if the east door is locked and unlock it if possible
+        Room currentRoom = player.getCurrentRoom();
         if (currentRoom.isEastLocked()) {
-            currentRoom.unlockEast(); // Unlock the door
-            ui.showMessage("The door to the east is now unlocked."); // Inform the user
-            soundManager.playSound("unlock"); // Play sound for unlocking
+            currentRoom.unlockEast();
+            ui.showMessage("The door to the east is now unlocked.");
+            soundManager.playSound("unlock");
         } else {
-            ui.showMessage("There is no locked door here."); // Handle case where no door is locked
+            ui.showMessage("There is no locked door here.");
         }
     }
 
     // Show the map of the current room
     private void showMap() {
-        Room currentRoom = player.getCurrentRoom(); // Get the current room
-        // Retrieve room names for the current, east, south, and west rooms
-        String currentRoomName = currentRoom.getName(); // Get the current room's name
+        Room currentRoom = player.getCurrentRoom();
         String eastRoomName = currentRoom.getEast() != null ? currentRoom.getEast().getName() : "Locked";
         String southRoomName = currentRoom.getSouth() != null ? currentRoom.getSouth().getName() : "Locked";
         String westRoomName = currentRoom.getWest() != null ? currentRoom.getWest().getName() : "Locked";
         String northRoomName = currentRoom.getNorth() != null ? currentRoom.getNorth().getName() : "Locked";
 
-        // Call the showMap method from the UserInterface
-        ui.showMap(currentRoomName, eastRoomName, southRoomName, westRoomName, northRoomName);
-    }
+        // Get the enemies in the current room
+        List<Enemy> enemies = currentRoom.getEnemies();
+        StringBuilder enemyNames = new StringBuilder();
+        if (!enemies.isEmpty()) {
+            for (Enemy enemy : enemies) {
+                enemyNames.append(enemy.getName()).append(", "); // Append enemy names
+            }
+            // Remove the last comma and space
+            enemyNames.setLength(enemyNames.length() - 2);
+        } else {
+            enemyNames.append("None"); // No enemies present
+        }
 
-    // Player class getter for current room
-    public Room getCurrentRoom() {
-        return player.getCurrentRoom();
-    }
-
-    // Player class getter for PlayerInventory
-    public List<Item> getPlayerInventory() {
-        return player.getInventory(); // Assuming player has a method to get inventory
-    }
-
-    // Add this method to the GameController class
-    public Weapon getEquippedWeapon() {
-        return player.getEquippedWeapon(); // Assuming the Player class has a method to get the equipped weapon
+        // Show the map with the enemies
+        ui.showMap(currentRoom.getName(), eastRoomName, southRoomName, westRoomName, northRoomName, enemyNames.toString());
     }
 
     // Take an item from the current room
     boolean takeItem(String itemName) {
-        Room currentRoom = player.getCurrentRoom(); // Get the current room
-        Item itemToTake = currentRoom.findItem(itemName); // Use findItem to get the Item
+        Room currentRoom = player.getCurrentRoom();
+        Item itemToTake = currentRoom.findItem(itemName);
         if (itemToTake != null) {
-            boolean success = player.takeItem(itemToTake.getShortName()); // Use short name to take the item
-            return success; // Return the success status
+            boolean success = player.takeItem(itemToTake.getShortName());
+            return success;
         } else {
-            ui.showMessage("There is no " + itemName + " here."); // Inform the user if the item is not found
-            return false; // Item taking failed
+            ui.showMessage("There is no " + itemName + " here.");
+            return false;
         }
     }
 
-    // Drop an item to the current room
+    // Drop an item into the current room
     boolean dropItem(String itemName) {
-        Room currentRoom = player.getCurrentRoom(); // Get the current room
-        Item itemToDrop = player.findItemInInventory(itemName); // Corrected method name
-        if (itemToDrop != null) { // Check if the item exists in inventory
-            boolean success = player.dropItem(itemToDrop.getShortName()); // Call the dropItem method on Player
+        Room currentRoom = player.getCurrentRoom();
+        Item itemToDrop = player.findItemInInventory(itemName);
+        if (itemToDrop != null) {
+            boolean success = player.dropItem(itemToDrop.getShortName());
             if (success) {
-                currentRoom.addItem(itemToDrop); // Add the item back to the room after dropping it
+                currentRoom.addItem(itemToDrop);
             }
             return success;
         } else {
-            ui.showMessage("You don't have " + itemName + " in your inventory."); // Handle case where item is not found
-            return false; // Item was not found to drop
+            ui.showMessage("You don't have " + itemName + " in your inventory.");
+            return false;
         }
+    }
+
+    // New methods for UserInterface to avoid errors
+    public Room getCurrentRoom() {
+        return player.getCurrentRoom();
+    }
+
+    public List<Item> getPlayerInventory() {
+        return player.getInventory(); // Return the player's inventory
+    }
+
+    public Weapon getEquippedWeapon() {
+        return player.getEquippedWeapon(); // Return the currently equipped weapon
+
+
     }
 }

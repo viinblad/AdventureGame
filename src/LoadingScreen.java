@@ -31,13 +31,8 @@ public class LoadingScreen extends JFrame {
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 15));
         textArea.setBackground(Color.BLACK); // Background color
         textArea.setForeground(Color.WHITE); // Set a default text color
-        textArea.setLineWrap(false); // Disable line wrap to maintain ANSI art formatting
-        textArea.setWrapStyleWord(false); // Ensure no word wrap occurs
-
-        // Use a scroll pane for the text area
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // Only show scroll bar when necessary
-        scrollPane.setPreferredSize(new Dimension(getWidth(), getHeight() - 100)); // Leave some space for the loading label
+        textArea.setLineWrap(true); // Enable line wrap to avoid horizontal scrolling
+        textArea.setWrapStyleWord(true); // Ensure words are wrapped properly
 
         // Set up the loading label
         loadingLabel = new JLabel("Loading...   ");
@@ -46,7 +41,8 @@ public class LoadingScreen extends JFrame {
         loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         // Add components to the frame
-        add(scrollPane, BorderLayout.CENTER);
+        setLayout(new BorderLayout()); // Use BorderLayout for the frame
+        add(textArea, BorderLayout.CENTER); // Directly add JTextArea
         add(loadingLabel, BorderLayout.SOUTH);
 
         setVisible(true); // Make the frame visible
@@ -144,7 +140,7 @@ public class LoadingScreen extends JFrame {
 
         worker.execute(); // Start the loading process
     }
-
+// main method for debugging
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             LoadingScreen loadingScreen = new LoadingScreen();

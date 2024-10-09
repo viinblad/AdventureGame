@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class UserInterface {
     private JFrame frame;                     // Main application window
@@ -20,6 +21,7 @@ public class UserInterface {
         frame = new JFrame("Adventure Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exit the application on close
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set the window to full screen
+        frame.setUndecorated(true); // Remove window borders and title bar
         frame.setLayout(new BorderLayout()); // Use BorderLayout for layout management
 
         // Create a panel to center the ANSI art area
@@ -105,7 +107,8 @@ public class UserInterface {
         frame.setVisible(true);
     }
 
-    // Method to set the GameController
+
+// Method to set the GameController
     public void setGameController(GameController controller) {
         this.gameController = controller;
     }
@@ -147,7 +150,7 @@ public class UserInterface {
                 case "look":
                     Room currentRoom = gameController.getCurrentRoom(); // Get the current room
                     displayRoomDescription(currentRoom); // Call the displayRoomDescription method
-                    showRoomItems(currentRoom); // Show items in the current room
+                    showRoomItemsAndEnemies(currentRoom); // Show items and enemies in the current room
                     break;
                 case "inventory":
                     displayInventory(); // Show inventory if the command is "inventory"
@@ -203,7 +206,7 @@ public class UserInterface {
 
     // Method to show item picked up message
     public void showItemPickedUp(String itemName) {
-        showMessage( "the "+ itemName + "."); // Notify the user of item pickup
+        showMessage("You picked up: " + itemName + "."); // Notify the user of item pickup
     }
 
     // Method to show item dropped message
@@ -217,18 +220,32 @@ public class UserInterface {
         showMessage(description); // Show the description in the message area
     }
 
-    // Method to show items in the current room
-    public void showRoomItems(Room room) {
-        StringBuilder itemsMessage = new StringBuilder("Items in this room:\n");
+    // Method to show items and enemies in the current room
+    public void showRoomItemsAndEnemies(Room room) {
+        StringBuilder itemsAndEnemiesMessage = new StringBuilder();
+        itemsAndEnemiesMessage.append("Items in this room:\n");
+
+        // Show items
         if (room.getItems().isEmpty()) {
-            itemsMessage.append("There are no items in this room.");
+            itemsAndEnemiesMessage.append("There are no items in this room.\n");
         } else {
             for (Item item : room.getItems()) {
-                // Assuming Item has getName() and getDescription() methods
-                itemsMessage.append("- ").append(item.getLongName()).append(" (").append(item.getShortName()).append(")\n");
+                itemsAndEnemiesMessage.append("- ").append(item.getLongName()).append(" (").append(item.getShortName()).append(")\n");
             }
         }
-        showMessage(itemsMessage.toString()); // Show message with items
+
+        // Show enemies
+        List<Enemy> enemies = room.getEnemies(); // Ensure that the correct List type is imported
+        itemsAndEnemiesMessage.append("Enemies in this room:\n");
+        if (enemies.isEmpty()) {
+            itemsAndEnemiesMessage.append("There are no enemies in this room.\n");
+        } else {
+            for (Enemy enemy : enemies) {
+                itemsAndEnemiesMessage.append("- ").append(enemy.getName()).append("\n");
+            }
+        }
+
+        showMessage(itemsAndEnemiesMessage.toString()); // Show message with items and enemies
     }
 
     // Method to display the player's inventory
@@ -289,13 +306,13 @@ public class UserInterface {
         // Define the commands in an array
         String[][] commands = {
                 {"Move Commands:", "Status commands:", "Action command:"},
-                {"go north", "health", "inventory","drink [potion]"},
-                {"go west", "look", "take [item]","attack[]" },
+                {"go north", "health", "inventory", "drink [potion]"},
+                {"go west", "look", "take [item]", "attack[]"},
                 {"go east", "show map", "drop [item]", "exit" + ": close the game"},
-                {"go south", "unlock","eat [food]"},
+                {"go south", "unlock", "eat [food]"},
         };
 
-        // Create a formatted string with three columns
+        // Create a formatted string with columns
         for (String[] row : commands) {
             for (String command : row) {
                 if (!command.isEmpty()) {
@@ -312,7 +329,7 @@ public class UserInterface {
     }
 
     // Method to display the map of the current room and its connections
-    public void showMap(String currentRoomName, String eastRoomName, String southRoomName, String westRoomName, String northRoomName) {
+    public void showMap(String currentRoomName, String eastRoomName, String southRoomName, String westRoomName, String northRoomName, String enemies) {
         StringBuilder mapDisplay = new StringBuilder();
         mapDisplay.append("Current Room: ").append(currentRoomName).append("\n");
         mapDisplay.append("Adjacent Rooms:\n");
@@ -320,6 +337,7 @@ public class UserInterface {
         mapDisplay.append("South: ").append(southRoomName).append("\n");
         mapDisplay.append("West: ").append(westRoomName).append("\n");
         mapDisplay.append("East: ").append(eastRoomName).append("\n");
+        mapDisplay.append("Enemies in the room: ").append(enemies).append("\n"); // Display enemies
 
         // Show the map in a dialog
         JOptionPane.showMessageDialog(frame, mapDisplay.toString(), "Game Map", JOptionPane.INFORMATION_MESSAGE);

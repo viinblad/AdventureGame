@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class Room {
     private String name;
     private String description;
     private Room north, south, east, west;
     private ArrayList<Item> items; // List of items in the room
+    private List<Enemy> enemies; // Use List to hold enemies
     private boolean visited = false;  // Mark whether the room has been visited
     private boolean lockedEast = false;  // Marks if the eastern door is locked
 
@@ -13,6 +15,7 @@ public class Room {
         this.name = name;
         this.description = description;
         this.items = new ArrayList<>(); // Initialize the item list
+        this.enemies = new ArrayList<>(); // Initialize the enemy list
     }
 
     // Getter and setter methods for directions with automatic bidirectional linking
@@ -86,8 +89,13 @@ public class Room {
     }
 
     public void removeItem(Item item) {
-        items.remove(item);
+        if (items.remove(item)) {
+            System.out.println("Removed item: " + item.getLongName()); // Log successful removal
+        } else {
+            System.out.println("Failed to remove item: " + item.getLongName()); // Log failure
+        }
     }
+
 
     public ArrayList<Item> getItems() {
         return items;
@@ -113,5 +121,27 @@ public class Room {
                 System.out.println("- " + item.getLongName()); // Assuming you want to print the long name
             }
         }
+    }
+
+    // Methods for enemy management
+    public void addEnemy(Enemy enemy) {
+        enemies.add(enemy);
+    }
+
+    public void removeEnemy(Enemy enemy) {
+        enemies.remove(enemy);
+    }
+
+    public List<Enemy> getEnemies() {
+        return enemies; // Return the list of enemies
+    }
+
+    public Enemy findEnemy(String name) {
+        for (Enemy enemy : enemies) {
+            if (enemy.getName().equalsIgnoreCase(name)) {
+                return enemy;
+            }
+        }
+        return null; // Enemy not found
     }
 }

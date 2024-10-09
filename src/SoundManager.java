@@ -16,11 +16,11 @@ public class SoundManager {
     // Method to load sound files into the manager
     private void loadSounds() {
         try {
-            loadSound("start", "resources/sounds/start_sound.wav");
-            loadSound("move", "resources/sounds/move_sound.wav");
-            loadSound("unlock", "resources/sounds/unlock_sound.wav");
-            loadSound("look", "resources/sounds/look_sound.wav");
-            loadSound("win", "resources/sounds/win_sound.wav"); // Extra sound for winning
+            loadSound("start", "resources/sounds/start_sound.mp3"); // Sound Effect from <a href="https://pixabay.com/sound-effects/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6104">Pixabay</a>
+            loadSound("move", "resources/sounds/move_sound.wav"); // Sound Effect from pixabay
+            loadSound("unlock", "resources/sounds/unlock_sound.mp3"); // Sound Effect from pixabay
+            loadSound("look", "resources/sounds/look_sound.mp3"); //Sound Effect by <a href="https://pixabay.com/users/shidenbeatsmusic-25676252/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=115095">Shiden Beats Music</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=115095">Pixabay</a>
+            loadSound("win", "resources/sounds/win_sound.mp3"); // Extra sound for winning Sound Effect from <a href="https://pixabay.com/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=14675">Pixabay</a>
         } catch (Exception e) {
             System.err.println("Error loading sounds: " + e.getMessage());
         }
