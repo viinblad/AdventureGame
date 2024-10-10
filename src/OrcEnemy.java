@@ -1,3 +1,4 @@
+// OrcEnemy class
 public class OrcEnemy extends Enemy {
     public OrcEnemy(String name, String description, int health, Weapon weapon) {
         super(name, "A fearsome orc", health, weapon);

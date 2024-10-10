@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class StartView {
     private JFrame frame; // Main application window
@@ -16,8 +14,14 @@ public class StartView {
         gameController = new GameController(ui); // Initialize GameController with UserInterface
         ui.setGameController(gameController); // Set GameController in UserInterface
         soundManager = new SoundManager();
-        soundManager.startTheme("resources/sounds/theme_mix.wav"); // Start the theme music
+
         initializeUI(); // Initialize the user interface
+        soundManager.startTheme(); // Start the theme music with lower volume
+    }
+
+    // Static method to start the StartView
+    public static void start() {
+        SwingUtilities.invokeLater(StartView::new); // Create StartView instance
     }
 
     // Method to initialize the user interface
@@ -54,39 +58,14 @@ public class StartView {
         JButton exitButton = new JButton("Exit");
 
         // Customize buttons
-        startButton.setFont(new Font("Monospaced", Font.PLAIN, 20)); // Set font for buttons
-        instructionsButton.setFont(new Font("Monospaced", Font.PLAIN, 20));
-        exitButton.setFont(new Font("Monospaced", Font.PLAIN, 20));
-
-        // Set button colors
-        startButton.setBackground(Color.DARK_GRAY);
-        startButton.setForeground(Color.WHITE);
-        instructionsButton.setBackground(Color.DARK_GRAY);
-        instructionsButton.setForeground(Color.WHITE);
-        exitButton.setBackground(Color.DARK_GRAY);
-        exitButton.setForeground(Color.WHITE);
+        customizeButton(startButton);
+        customizeButton(instructionsButton);
+        customizeButton(exitButton);
 
         // Add action listeners to buttons
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                startGame(); // Start game logic
-            }
-        });
-
-        instructionsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showInstructions(); // Show instructions logic
-            }
-        });
-
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0); // Exit the application
-            }
-        });
+        startButton.addActionListener(e -> startGame()); // Start game logic
+        instructionsButton.addActionListener(e -> showInstructions()); // Show instructions logic
+        exitButton.addActionListener(e -> System.exit(0)); // Exit the application
 
         // Add buttons to the panel
         buttonPanel.add(startButton);
@@ -100,8 +79,22 @@ public class StartView {
         frame.setVisible(true);
     }
 
+    // Method to customize button appearance
+    private void customizeButton(JButton button) {
+        button.setFont(new Font("Monospaced", Font.PLAIN, 20)); // Set font for buttons
+        button.setBackground(Color.DARK_GRAY);
+        button.setForeground(Color.WHITE);
+    }
+
     // Method to start the game
     private void startGame() {
+        // Play the start sound effect
+        soundManager.playSoundEffect("start");
+
+        // Stop the theme music when the game starts
+        soundManager.stopTheme();
+
+        // Proceed with the game
         frame.dispose(); // Close the start screen
         gameController.startGame(); // Call the method to start the game
     }
@@ -119,6 +112,6 @@ public class StartView {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(StartView::new); // Directly create StartView instance
+        start(); // Start the game by creating StartView instance
     }
 }

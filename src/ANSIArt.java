@@ -79,26 +79,26 @@ public class ANSIArt {
     // Method to return a simple room art
     public static String getRoomArt() {
         return """
-                ________
-               |        |
-               |  Room  |
-               |________|
-               |        |
-               |        |
-               |________|
-        """;
+                        ________
+                       |        |
+                       |  Room  |
+                       |________|
+                       |        |
+                       |        |
+                       |________|
+                """;
     }
 
     // Method to return a loading screen ANSI art
     public static String getLoadingArt() {
         return """
-                ██████╗  ██████╗ ███████╗
-                ██╔══██╗██╔═══██╗██╔════╝
-                ██████╔╝██║   ██║███████╗
-                ██╔═══╝ ██║   ██║╚════██║
-                ██║     ╚██████╔╝███████║
-                ╚═╝      ╚═════╝ ╚══════╝
-        """;
+                        ██████╗  ██████╗ ███████╗
+                        ██╔══██╗██╔═══██╗██╔════╝
+                        ██████╔╝██║   ██║███████╗
+                        ██╔═══╝ ██║   ██║╚════██║
+                        ██║     ╚██████╔╝███████║
+                        ╚═╝      ╚═════╝ ╚══════╝
+                """;
     }
 
     // You can add more methods to get different kinds of ANSI art

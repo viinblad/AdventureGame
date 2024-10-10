@@ -140,7 +140,8 @@ public class LoadingScreen extends JFrame {
 
         worker.execute(); // Start the loading process
     }
-// main method for debugging
+
+    // main method for debugging
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             LoadingScreen loadingScreen = new LoadingScreen();

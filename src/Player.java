@@ -23,8 +23,6 @@ public class Player {
         Item starterWeapon = startingRoom.findItem("wooden sword");
         if (starterWeapon instanceof Weapon) {
             if (addItem(starterWeapon)) { // Add the starter weapon to the player's inventory
-                //printAndShowMessage("You picked up: " + starterWeapon.getLongName()); // Log pickup
-                // Do NOT automatically equip it here
                 // The player can equip it later when desired
                 // Remove the starter weapon from the room after picking it up
                 startingRoom.removeItem(starterWeapon); // Ensure the starter weapon is removed from the room
@@ -101,45 +99,36 @@ public class Player {
 
     // Overloaded method to allow suppressing the UI message
     public boolean equipWeapon(Weapon weapon, boolean showInUI) {
-        /*if (showInUI) {
-            printAndShowMessage("Trying to equip weapon: " + weapon.getLongName() + " with short name: " + weapon.getShortName());
-        }
-
-        // Print current inventory for debugging
-        debugInventory(); // Call this to print current items in inventory
-*/
         // Check if the weapon exists in the inventory
-        if (inventory.contains(weapon)) {
-            // If there's already an equipped weapon, put it back in the inventory
-            if (equippedWeapon != null) {
-                // Return the previously equipped weapon to the inventory
-                inventory.add(equippedWeapon);
-                printAndShowMessage("Your " + equippedWeapon.getLongName() + " has been returned to your inventory.");
-            }
-
-            // Equip the new weapon
-            equippedWeapon = weapon;
-
+        if (!inventory.contains(weapon)) {
             if (showInUI) {
-                printAndShowMessage("You have equipped: " + equippedWeapon.getLongName());
+                printAndShowMessage("You don't have that weapon.");
             }
-            return true;
+            return false; // Weapon not found in inventory
         }
 
+        // If there's already an equipped weapon, put it back in the inventory
+        if (equippedWeapon != null) {
+            // Only return the previously equipped weapon to inventory if it's not the same as the new weapon
+            if (!equippedWeapon.equals(weapon)) {
+                // Remove the equipped weapon from the inventory if it's not already there to avoid duplication
+                if (!inventory.contains(equippedWeapon)) {
+                    inventory.add(equippedWeapon);
+                    printAndShowMessage("Your " + equippedWeapon.getLongName() + " has been returned to your inventory.");
+                }
+            }
+        }
+
+        // Equip the new weapon
+        equippedWeapon = weapon;
+
+        // Show the equip message
         if (showInUI) {
-            printAndShowMessage("You don't have that weapon.");
+            System.out.println("You have equipped: " + equippedWeapon.getLongName());
         }
-        return false;
-    }
 
-    // Method to display the current inventory for debugging
-    public void debugInventory() {
-        System.out.println("Current Inventory:");
-        for (Item item : inventory) {
-            System.out.println("- " + item.getLongName());
-        }
+        return true; // Successfully equipped the weapon
     }
-
 
 
     // Method for the player to attack an enemy
@@ -185,7 +174,7 @@ public class Player {
             // Check if the enemy has died as a result of the attack
             if (targetEnemy.isDead()) {
                 // Inform that the enemy is defeated and they dropped their weapon
-                printAndShowMessage("You have defeated " + targetEnemy.getName() + "! He dropped his weapon for you.");
+                printAndShowMessage("You have defeated " + targetEnemy.getName() + "! They dropped their weapon for you.");
                 currentRoom.removeEnemy(targetEnemy); // Remove the defeated enemy from the room
                 return; // Exit since the enemy is dead
             }
@@ -193,16 +182,49 @@ public class Player {
             // Enemy counter-attack only if the enemy is still alive
             int enemyDamage = targetEnemy.attack(this); // Call the enemy to attack back
 
+            // Show the enemy's attack message
+            printAndShowMessage(targetEnemy.attackMessage()); // Display the attack message
+
             // Show the player's health after the enemy attack
             printAndShowMessage("You took " + enemyDamage + " damage.");
             ui.showHealth(getHealth(), getMaxHealth());
         } else {
             printAndShowMessage("You have no weapon equipped or your weapon can't be used."); // Notify if the weapon can't be used
         }
+
+        // Check player's health after the enemy's counter-attack
+        if (isDead()) {
+            printAndShowMessage("You have been defeated.");
+            // Call game over handling method here if necessary
+        }
     }
 
+
     // Method to consume food
-    public boolean consumeFood(Food food) {
+    public boolean consumeFood(String foodName) {
+        if (foodName == null || foodName.isEmpty()) {
+            printAndShowMessage("You must specify which food item to consume.");
+            return false;
+        }
+
+        // Retrieve the food from the inventory
+        Food food = inventory.stream()
+                .filter(item -> item instanceof Food && item.getShortName().equalsIgnoreCase(foodName))
+                .map(item -> (Food) item)
+                .findFirst()
+                .orElse(null);
+
+        // Check if the food exists in the inventory
+        if (food == null) {
+            printAndShowMessage("You don't have that food item.");
+            return false; // Exit if the food does not exist
+        }
+
+        // Show room description before consuming the food
+        ui.clearOutput(); // Clear previous messages
+        ui.displayRoomDescription(currentRoom); // Show room description immediately
+        printAndShowMessage("-----------------------------------------------------------------"); // Separator line
+
         String message;
         if (food.isPoisonous()) {
             takeDamage(food.getHealthRestored());
@@ -220,18 +242,41 @@ public class Player {
             printAndShowMessage("You are in great shape!");
         }
 
-        removeItem(food); // Remove food from inventory
-        ui.clearOutput(); // Clear the output
-        ui.displayRoomDescription(currentRoom); // Show room description without delay
-        return true;
+        removeItem(food, false); // Remove food from inventory
+        return true; // Return true indicating successful consumption
     }
 
-    // Method to consume potion
-    public boolean consumePotion(Potion potion) {
+
+    // Method for the player to consume a potion
+    public boolean consumePotion(String potionName) {
+        if (potionName == null || potionName.isEmpty()) {
+            printAndShowMessage("You must specify which potion to consume.");
+            return false;
+        }
+
+        // Retrieve the potion from the inventory
+        Potion potion = inventory.stream()
+                .filter(item -> item instanceof Potion && item.getShortName().equalsIgnoreCase(potionName))
+                .map(item -> (Potion) item)
+                .findFirst()
+                .orElse(null);
+
+        // Check if the potion exists in the inventory
+        if (potion == null) {
+            printAndShowMessage("You don't have that potion.");
+            return false; // Exit if the potion does not exist
+        }
+
+        // Show room description before consuming the potion
+        ui.clearOutput(); // Clear previous messages
+        ui.displayRoomDescription(currentRoom); // Show room description immediately
+        printAndShowMessage("-----------------------------------------------------------------"); // Separator line
+
         String message;
         if (potion.isPoisonous()) {
-            takeDamage(potion.getHealthRestored());
             message = "You consumed a poisonous potion! You took " + potion.getHealthRestored() + " damage.";
+            takeDamage(potion.getHealthRestored());
+
         } else {
             increaseHealth(potion.getHealthRestored());
             message = "You consumed " + potion.getLongName() + " and restored " + potion.getHealthRestored() + " health.";
@@ -245,11 +290,10 @@ public class Player {
             printAndShowMessage("You are in great shape!");
         }
 
-        removeItem(potion); // Remove potion from inventory
-        ui.clearOutput(); // Clear the output
-        ui.displayRoomDescription(currentRoom); // Show room description without delay
+        removeItem(potion, false); // Remove potion from inventory
         return true;
     }
+
 
     // Move in the specified direction
     public boolean move(String direction) {
@@ -289,6 +333,12 @@ public class Player {
 
     // Check if the player can move in the specified direction
     public boolean canMove(String direction) {
+        // Check if there are any enemies in the current room
+        if (!currentRoom.getEnemies().isEmpty()) {
+            printAndShowMessage("You cannot move while enemies are present in the room!");
+            return false; // Prevent movement if enemies are present
+        }
+
         switch (direction.toLowerCase()) {
             case "north":
                 return currentRoom.getNorth() != null;
@@ -303,30 +353,6 @@ public class Player {
         }
     }
 
-    // Method to add an item to the inventory (Take item from room)
-    public boolean addItem(Item item) {
-        if (inventory.size() < MAX_INVENTORY_SIZE) {
-            inventory.add(item); // Add the item to inventory
-            printAndShowMessage("You have picked up: " + item.getLongName());  // Output to UI and terminal
-            return true;
-        } else {
-            printAndShowMessage("Your inventory is full! Can't add " + item.getLongName());
-            return false;
-        }
-    }
-
-    // Method to remove an item from the inventory (Drop item to room)
-    public boolean removeItem(Item item) {
-        if (inventory.contains(item)) {
-            inventory.remove(item);
-            printAndShowMessage("You dropped " + item.getLongName() + "."); // Notify drop
-            return true; // Dropping item doesn't print message
-        } else {
-            printAndShowMessage("Item not found in inventory.");
-            return false;
-        }
-    }
-
     // Method to findItem in inventory
     public Item findItemInInventory(String itemName) {
         for (Item item : inventory) {
@@ -338,31 +364,56 @@ public class Player {
         return null; // Return null if not found
     }
 
-    // Method to take an item from the current room
-    public boolean takeItem(String itemName) {
-        Item item = currentRoom.findItem(itemName);
-        if (item != null) {
-            if (addItem(item)) {
-                currentRoom.removeItem(item);
-                return true;
-            }
+    // Method to add an item to the inventory (Take item from room)
+    public boolean addItem(Item item) {
+        if (inventory.size() < MAX_INVENTORY_SIZE) {
+            inventory.add(item); // Add the item to inventory
+            printAndShowMessage("You have picked up: " + item.getLongName()); // Output to UI and terminal
+            return true; // Indicate success
         } else {
-            printAndShowMessage("There is no " + itemName + " here.");
+            printAndShowMessage("Your inventory is full! Can't add " + item.getLongName()); // Inform player inventory is full
+            return false; // Indicate failure
         }
-        return false;
     }
 
-    // Method to drop an item into the current room
-    public boolean dropItem(String itemName) {
-        Item item = findItemInInventory(itemName);
-        if (item != null) {
-            currentRoom.addItem(item);
-            removeItem(item);
-            return true;
+    // Method to remove an item from the inventory (Drop item to room)
+    public boolean removeItem(Item item, boolean showDropMessage) {
+        if (inventory.contains(item)) {
+            inventory.remove(item); // Remove the item from inventory
+
+            // Only show the drop message if we are actually dropping the item
+            if (showDropMessage) {
+                printAndShowMessage("You dropped " + item.getLongName() + "."); // Notify drop
+            }
+            return true; // Item removed successfully
         } else {
-            printAndShowMessage("You don't have " + itemName + " in your inventory.");
+            printAndShowMessage("Item not found in inventory."); // Inform player if item not found
+            return false; // Indicate failure
         }
-        return false;
+    }
+
+
+    // Method to take or drop an item from the current room
+    public boolean takeItem(String itemName) {
+        Item itemToTake = currentRoom.findItem(itemName);
+        if (itemToTake != null) {
+            inventory.add(itemToTake); // Add item to inventory
+            currentRoom.removeItem(itemToTake); // Remove from room
+            return true; // Indicate success
+        }
+        return false; // Indicate failure
+    }
+
+
+    public boolean dropItem(String itemName) {
+        Item itemToDrop = findItemInInventory(itemName);
+        if (itemToDrop != null) {
+            inventory.remove(itemToDrop); // Remove the item from inventory
+            currentRoom.addItem(itemToDrop); // Add the item to the current room
+            return true; //success
+        } else {
+            return false; //failure
+        }
     }
 
     // Method to display the inventory

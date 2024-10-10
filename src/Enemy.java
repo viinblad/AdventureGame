@@ -57,9 +57,17 @@ public abstract class Enemy {
         if (weapon != null && weapon.canUse()) {
             damage = weapon.getDamage();
             player.takeDamage(damage); // Call player's takeDamage method
-            // Optional: handle UI messages for attacking
         }
-        return damage;  // Return the amount of damage dealt to the player
+        return damage; // Return the amount of damage dealt to the player
+    }
+
+    // New method to get a detailed attack message
+    public String attackMessage() {
+        if (weapon != null && weapon.canUse()) {
+            return name + " attacks you with " + weapon.getLongName() + " and deals " + weapon.getDamage() + " damage.";
+        } else {
+            return name + " attacks you, but has no weapon!";
+        }
     }
 
     // Abstract method to define specific behavior for enemies

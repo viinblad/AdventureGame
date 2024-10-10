@@ -1,4 +1,8 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -15,12 +19,25 @@ public class GameController {
         this.soundManager = new SoundManager(); // Initialize sound manager
         this.gameMap = new Map(); // Initialize the Map instance
         initializeGame(); // Initialize the game and create the Player
-        soundManager.startTheme("resources/sounds/theme_mix.wav"); // Start background theme music
+        soundManager.startTheme(); // Start background theme music
     }
+
     // Start the game and display the loading screen
     public void startGame() {
         System.out.println("Starting the game...");
+
+        // Start a new thread for the game start process
         new Thread(() -> {
+            // Show the lore presentation first
+            LorePresentation lorePresentation = new LorePresentation();
+            try {
+                lorePresentation.displayLore(); // Display the lore presentation
+            } catch (InterruptedException e) {
+                System.err.println("Lore presentation error: " + e.getMessage());
+                return; // Exit if lore presentation fails
+            }
+
+            // After the lore presentation, show the loading screen
             LoadingScreen loadingScreen = new LoadingScreen();
             try {
                 loadingScreen.displayLoading(); // Display loading animation
@@ -29,6 +46,7 @@ public class GameController {
                 return; // Exit if loading fails
             }
 
+            // Continue with the game UI after loading is complete
             SwingUtilities.invokeLater(() -> {
                 if (ui == null) {
                     System.err.println("UI is not initialized.");
@@ -37,7 +55,7 @@ public class GameController {
 
                 ui.showMessage("Welcome to the Adventure Game!");
                 ui.showMessage("Type 'help' to see the available commands.");
-                soundManager.playSound("start"); // Play sound for starting the game
+                // soundManager.playSound("start"); // Uncomment to play sound for starting the game
 
                 if (player.getCurrentRoom() != null) {
                     ui.displayRoomDescription(player.getCurrentRoom()); // Display current room
@@ -45,7 +63,19 @@ public class GameController {
                     System.err.println("Current room is not initialized.");
                 }
             });
-        }).start(); // Start the loading thread
+        }).start(); // Start the game start process thread
+    }
+
+    // Method to ensure audio
+    public void playSound(String soundFile) {
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(soundFile));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace(); // Print any exceptions for debugging
+        }
     }
 
     // Initialize the game by setting the starting room and creating a Player
@@ -61,7 +91,6 @@ public class GameController {
         List<Enemy> enemies = currentRoom.getEnemies();
         enemy = (enemies.isEmpty()) ? null : enemies.get(0); // Set the enemy to the first one found
     }
-
 
 
     // Process user commands
@@ -83,7 +112,7 @@ public class GameController {
                 ui.showHelp(); // Display help instructions
                 break;
             case "unlock": // Command to unlock a door
-                unlockDoor(); // Attempt to unlock the door
+                unlockDoor();// Attempt to unlock the door
                 break;
             case "show map": // Command to show the map
                 showMap(); // Show the map when the user types 'show map'
@@ -145,6 +174,33 @@ public class GameController {
             enemy = null; // Reset current enemy since it's defeated
             updateCurrentEnemy(); // Update the enemy after removing
         }
+        // Check player's health after attack
+        if (player.isDead()) {
+            handleGameOver(); // Call game over handling if player is dead
+        }
+    }
+
+    // Handle game over scenario
+    private void handleGameOver() {
+        ui.showMessage("You have died - GAME OVER."); // Show death message
+
+        // Use a new thread to wait for a while before closing the game
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000); // Sleep for 3000 milliseconds (3 seconds)
+            } catch (InterruptedException e) {
+                e.printStackTrace(); // Handle interruption
+            }
+            SwingUtilities.invokeLater(this::closeGameAndStartNewView); // Close the game on the EDT
+        }).start();
+    }
+
+    // Method to close the current game and start the StartView
+    private void closeGameAndStartNewView() {
+        soundManager.close(); // Stop any sounds
+        // Assuming StartView has a static method to initialize and show it
+        // Launch StartView
+        SwingUtilities.invokeLater(StartView::start);
     }
 
     // Handle player equipping a weapon
@@ -168,33 +224,49 @@ public class GameController {
 
     // Handle player consuming food
     void handleFoodConsumption(String command) {
+        // Ensure the command is at least 5 characters long to avoid IndexOutOfBoundsException
+        if (command.length() < 5) {
+            ui.showMessage("Eat what?");
+            return;
+        }
+
         String foodName = command.substring(4).trim(); // Extract the food name
         if (!foodName.isEmpty()) {
-            Food food = (Food) player.findItemInInventory(foodName);
-            if (food != null) {
-                player.consumeFood(food); // Consume food
-            } else {
-                ui.showMessage("You don't have that food item.");
+            // Attempt to consume the food using the player's method
+            if (player.consumeFood(foodName)) {
+                // If the food was successfully consumed, print the consumption message
+                System.out.println("You consumed " + foodName + "."); // Confirmation message for console
             }
+            // No need to show a message here if the food is not found; it will be handled in consumeFood
         } else {
             ui.showMessage("Eat what?");
         }
     }
 
+
     // Handle player consuming a potion
     void handlePotionConsumption(String command) {
+        // Ensure the command is at least 7 characters long to avoid IndexOutOfBoundsException
+        if (command.length() < 7) {
+            ui.showMessage("Drink what?");
+            return;
+        }
+
         String potionName = command.substring(6).trim(); // Extract the potion name
         if (!potionName.isEmpty()) {
-            Potion potion = (Potion) player.findItemInInventory(potionName);
-            if (potion != null) {
-                player.consumePotion(potion); // Consume potion
+            // Attempt to consume the potion using the player's method
+            if (player.consumePotion(potionName)) {
+                // If the potion was successfully consumed, print the consumption message
+                System.out.println("You consumed " + potionName + "."); // Confirmation message for console
             } else {
-                ui.showMessage("You don't have that potion item.");
+                // This message will already be printed in consumePotion if the potion is not found
+                // ui.showMessage("You don't have that potion item."); // No need for this line
             }
         } else {
             ui.showMessage("Drink what?");
         }
     }
+
 
     // Show the player's current health
     public void showHealth() {
@@ -215,6 +287,7 @@ public class GameController {
                             ui.displayRoomDescription(player.getCurrentRoom()); // Display new room description
                             ui.showHealth(player.getHealth(), player.getMaxHealth()); // Update health display
                             updateCurrentEnemy(); // Update current enemy after moving
+                            soundManager.playSoundEffect("move"); // Play move sound effect
                         } else {
                             ui.showMessage("You cannot go that way.");
                         }
@@ -228,15 +301,16 @@ public class GameController {
         }
     }
 
+
     // Handle taking an item
     private void handleItemTake(String command) {
         String itemToTake = command.substring(5).trim(); // Extract the item name
         if (!itemToTake.isEmpty()) {
-            boolean success = takeItem(itemToTake);
-            if (success) {
-                ui.showItemPickedUp(itemToTake); // Notify UI about item pickup
+            Item item = player.getCurrentRoom().findItem(itemToTake); // Find the item in the room
+            if (item != null && player.takeItem(item.getShortName())) { // Use short name for taking
+                ui.showItemPickedUp(item.getLongName()); // Pass the long name of the item to showItemPickedUp
             } else {
-                ui.showMessage("Item not found or can't be picked up.");
+                ui.showMessage("Item not found or can't be picked up."); // Handle failure
             }
         } else {
             ui.showMessage("Take what?");
@@ -247,27 +321,24 @@ public class GameController {
     private void handleItemDrop(String command) {
         String itemToDrop = command.substring(5).trim(); // Extract the item name
         if (!itemToDrop.isEmpty()) {
-            boolean success = dropItem(itemToDrop);
-            if (success) {
-                ui.showItemDropped(itemToDrop); // Notify the user of item drop
+            Item item = player.findItemInInventory(itemToDrop); // Find the item in the player's inventory
+            if (item != null && player.dropItem(item.getShortName())) { // Use short name for dropping
+                player.getCurrentRoom().addItem(item); // Add the item back to the room
+                ui.showItemDropped(item.getLongName()); // Pass the long name of the item to showItemDropped
             } else {
-                ui.showMessage("You don't have that item.");
+                ui.showMessage("You don't have " + itemToDrop + " in your inventory."); // Handle failure
             }
         } else {
             ui.showMessage("Drop what?");
         }
     }
 
-    // Look around the current room
     private void lookAround() {
         Room currentRoom = player.getCurrentRoom(); // Get the current room
         ui.displayRoomDescription(currentRoom); // Show the room description
-        soundManager.playSound("look"); // Play sound when looking around
-
-        // Display both items and enemies in the room
+        System.out.println("Attempting to play 'look' sound effect..."); // Debug line
+        soundManager.playSoundEffect("look"); // Play sound when looking around
         ui.showRoomItemsAndEnemies(currentRoom); // Call the UI method to display items and enemies
-
-
     }
 
 
@@ -277,7 +348,7 @@ public class GameController {
         if (currentRoom.isEastLocked()) {
             currentRoom.unlockEast();
             ui.showMessage("The door to the east is now unlocked.");
-            soundManager.playSound("unlock");
+            soundManager.playSoundEffect("unlock");
         } else {
             ui.showMessage("There is no locked door here.");
         }
@@ -309,33 +380,26 @@ public class GameController {
     }
 
     // Take an item from the current room
-    boolean takeItem(String itemName) {
-        Room currentRoom = player.getCurrentRoom();
-        Item itemToTake = currentRoom.findItem(itemName);
-        if (itemToTake != null) {
-            boolean success = player.takeItem(itemToTake.getShortName());
-            return success;
-        } else {
-            ui.showMessage("There is no " + itemName + " here.");
-            return false;
+    public Item takeItem(String itemName) {
+        Room currentRoom = player.getCurrentRoom(); // Get the current room
+        Item itemToTake = currentRoom.findItem(itemName); // Find the item in the room
+        if (itemToTake != null && player.takeItem(itemToTake.getShortName())) { // Check if the item is successfully taken
+            return itemToTake; // Return the Item object if successful
         }
+        return null; // Return null if the item cannot be taken
     }
 
-    // Drop an item into the current room
-    boolean dropItem(String itemName) {
-        Room currentRoom = player.getCurrentRoom();
-        Item itemToDrop = player.findItemInInventory(itemName);
-        if (itemToDrop != null) {
-            boolean success = player.dropItem(itemToDrop.getShortName());
-            if (success) {
-                currentRoom.addItem(itemToDrop);
-            }
-            return success;
-        } else {
-            ui.showMessage("You don't have " + itemName + " in your inventory.");
-            return false;
+
+    // Drop an item from the inventory
+    public Item dropItem(String itemName) {
+        Item itemToDrop = player.findItemInInventory(itemName); // Find the item in the player's inventory
+        if (itemToDrop != null && player.dropItem(itemToDrop.getShortName())) { // Check if the item is successfully dropped
+            player.getCurrentRoom().addItem(itemToDrop); // Add the dropped item to the room
+            return itemToDrop; // Return the Item object if successful
         }
+        return null; // Return null if the item cannot be dropped
     }
+
 
     // New methods for UserInterface to avoid errors
     public Room getCurrentRoom() {

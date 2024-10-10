@@ -19,7 +19,10 @@ public class Room {
     }
 
     // Getter and setter methods for directions with automatic bidirectional linking
-    public Room getNorth() { return north; }
+    public Room getNorth() {
+        return north;
+    }
+
     public void setNorth(Room north) {
         this.north = north;
         if (north != null && north.getSouth() != this) {
@@ -27,7 +30,10 @@ public class Room {
         }
     }
 
-    public Room getSouth() { return south; }
+    public Room getSouth() {
+        return south;
+    }
+
     public void setSouth(Room south) {
         this.south = south;
         if (south != null && south.getNorth() != this) {
@@ -35,7 +41,10 @@ public class Room {
         }
     }
 
-    public Room getEast() { return lockedEast ? null : east; } // Prevent movement if locked
+    public Room getEast() {
+        return lockedEast ? null : east;
+    } // Prevent movement if locked
+
     public void setEast(Room east) {
         this.east = east;
         if (east != null && east.getWest() != this) {
@@ -43,7 +52,10 @@ public class Room {
         }
     }
 
-    public Room getWest() { return west; }
+    public Room getWest() {
+        return west;
+    }
+
     public void setWest(Room west) {
         this.west = west;
         if (west != null && west.getEast() != this) {
@@ -111,17 +123,6 @@ public class Room {
         return null; // Item not found
     }
 
-    // Show items in the room
-    public void showItems() {
-        if (items.isEmpty()) {
-            System.out.println("There are no items in this room.");
-        } else {
-            System.out.println("You see the following items: ");
-            for (Item item : items) {
-                System.out.println("- " + item.getLongName()); // Assuming you want to print the long name
-            }
-        }
-    }
 
     // Methods for enemy management
     public void addEnemy(Enemy enemy) {

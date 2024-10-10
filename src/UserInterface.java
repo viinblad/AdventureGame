@@ -11,10 +11,15 @@ public class UserInterface {
     private JButton sendButton;               // Button to send user input
     private GameController gameController;    // Reference to GameController
     private JTextArea ansiArtArea;            // Area to display ANSI art
+    private SoundManager soundManager; // Manages game sounds
+
 
     public UserInterface() {
         initializeUI(); // Initialize the user interface
+        this.soundManager = new SoundManager(); // Initialize sound manager
+
     }
+
 
     private void initializeUI() {
         // Create the main application window
@@ -108,27 +113,26 @@ public class UserInterface {
     }
 
 
-// Method to set the GameController
+    // Method to set the GameController
     public void setGameController(GameController controller) {
         this.gameController = controller;
     }
 
     // Method to update ANSI art based on the current room
     public void updateAnsiArt(String ansiArt) {
-        String[] lines = ansiArt.split("\n"); // Split ANSI art into individual lines
+        String[] lines = ansiArt.split("\n");
         StringBuilder centeredArt = new StringBuilder();
-        int maxWidth = ansiArtArea.getVisibleRect().width / ansiArtArea.getFontMetrics(ansiArtArea.getFont()).charWidth('M'); // Estimate maximum width
+        int maxWidth = ansiArtArea.getVisibleRect().width / ansiArtArea.getFontMetrics(ansiArtArea.getFont()).charWidth('M');
 
         for (String line : lines) {
-            int padding = (maxWidth - line.length()) / 2; // Calculate padding for centering
-            if (padding > 0) {
-                centeredArt.append(" ".repeat(Math.max(0, padding))); // Add spaces for centering
-            }
-            centeredArt.append(line).append("\n"); // Append the original line
+            int padding = (maxWidth - line.length()) / 2;
+            centeredArt.append(" ".repeat(Math.max(0, padding))).append(line).append("\n");
         }
 
-        ansiArtArea.setText(centeredArt.toString()); // Set the centered text
+        ansiArtArea.setText(centeredArt.toString());
+        ansiArtArea.setCaretPosition(0); // Optional: scroll to top after update
     }
+
 
     // Process user input
     private void handleInput() {
@@ -149,6 +153,7 @@ public class UserInterface {
             switch (trimmedInput) {
                 case "look":
                     Room currentRoom = gameController.getCurrentRoom(); // Get the current room
+                    gameController.playSound("resources/sounds/look_sound.wav"); // Play sound for look action
                     displayRoomDescription(currentRoom); // Call the displayRoomDescription method
                     showRoomItemsAndEnemies(currentRoom); // Show items and enemies in the current room
                     break;
@@ -186,33 +191,35 @@ public class UserInterface {
 
     // Handle taking an item from the current room
     private void handleTakeItem(String itemName) {
-        boolean success = gameController.takeItem(itemName); // Attempt to take the item
-        if (success) {
-            showItemPickedUp(itemName); // Notify the user of item pickup
+        Item item = gameController.takeItem(itemName); // Attempt to take the item and get the Item object
+        if (item != null) { // If the item is successfully taken
+            showItemPickedUp(item.getLongName()); // Pass the long name of the Item to showItemPickedUp
         } else {
             showMessage("You couldn't find a " + itemName + " here."); // Notify failure
         }
     }
 
+
     // Handle dropping an item from the inventory
     private void handleDropItem(String itemName) {
-        boolean success = gameController.dropItem(itemName); // Attempt to drop the item
-        if (success) {
-            showItemDropped(itemName); // Notify the user of item drop
+        Item item = gameController.dropItem(itemName); // Attempt to drop the item and get the Item object
+        if (item != null) { // If the item is successfully dropped
+            showItemDropped(item.getLongName()); // Pass the long name of the Item to showItemDropped
         } else {
             showMessage("You don't have a " + itemName + " in your inventory."); // Notify failure
         }
     }
 
     // Method to show item picked up message
-    public void showItemPickedUp(String itemName) {
-        showMessage("You picked up: " + itemName + "."); // Notify the user of item pickup
+    public void showItemPickedUp(String itemLongName) {
+        showMessage("You picked up: " + itemLongName + "."); // Notify the user of item pickup
     }
 
     // Method to show item dropped message
-    public void showItemDropped(String itemName) {
-        showMessage("You dropped the " + itemName + "."); // Notify the user of item drop
+    public void showItemDropped(String itemLongName) {
+        showMessage("You dropped the " + itemLongName + "."); // Notify the user of item drop
     }
+
 
     // Method to display room descriptions in an overlay style
     public void displayRoomDescription(Room room) {
