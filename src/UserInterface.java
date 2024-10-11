@@ -314,7 +314,7 @@ public class UserInterface {
         String[][] commands = {
                 {"Move Commands:", "Status commands:", "Action command:"},
                 {"go north", "health", "inventory", "drink [potion]"},
-                {"go west", "look", "take [item]", "attack[]"},
+                {"go west", "look", "take [item]", "attack[enemy name]"},
                 {"go east", "show map", "drop [item]", "exit" + ": close the game"},
                 {"go south", "unlock", "eat [food]"},
         };

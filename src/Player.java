@@ -364,6 +364,17 @@ public class Player {
         return null; // Return null if not found
     }
 
+    // Method to check if the player has a specific item
+    public boolean hasItem(String itemName) {
+        for (Item item : inventory) {
+            if (item.getShortName().equalsIgnoreCase(itemName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // Method to add an item to the inventory (Take item from room)
     public boolean addItem(Item item) {
         if (inventory.size() < MAX_INVENTORY_SIZE) {

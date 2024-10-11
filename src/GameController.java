@@ -345,12 +345,18 @@ public class GameController {
     // Unlock a door in the current room
     private void unlockDoor() {
         Room currentRoom = player.getCurrentRoom();
-        if (currentRoom.isEastLocked()) {
-            currentRoom.unlockEast();
-            ui.showMessage("The door to the east is now unlocked.");
-            soundManager.playSoundEffect("unlock");
+
+        // Check if the player has the magic key
+        if (player.hasItem("Magic Key")) {
+            if (currentRoom.isEastLocked()) {
+                currentRoom.unlockEast();
+                ui.showMessage("The door to the east is now unlocked.");
+                soundManager.playSoundEffect("unlock");
+            } else {
+                ui.showMessage("There is no locked door here.");
+            }
         } else {
-            ui.showMessage("There is no locked door here.");
+            ui.showMessage("You need a Magic Key to unlock this door.");
         }
     }
 
